@@ -1,0 +1,50 @@
+# Core dependencies for the Lingo Master Agent Backend
+fastapi>=0.104.1
+uvicorn>=0.24.0
+python-dotenv>=1.0.0
+pydantic>=2.7.4
+openai>=1.99.0
+requests>=2.31.0
+
+# Microsoft Agent Framework (using available packages)
+# Note: Microsoft Agent Framework is in preview, using compatible alternatives
+azure-ai-inference>=1.0.0b4
+azure-identity>=1.17.0
+openai>=1.99.0
+
+# LangChain and related tools
+langchain>=0.3.27
+langchain-community>=0.3.31
+langchain-openai>=0.2.0
+langchain-tavily>=0.2.12
+duckduckgo-search>=8.1.1
+tavily-python>=0.7.12
+
+# Web scraping dependencies
+beautifulsoup4>=4.12.3
+
+# SERP API for Google Flights and Hotels
+serpapi>=0.1.5
+
+# Additional dependencies for Microsoft Agent Framework
+aiohttp>=3.9.1
+websockets>=12.0
+asyncio-mqtt>=0.16.2
+
+# Blog Writing Team dependencies
+httpx>=0.27.0
+cryptography>=42.0.0
+sqlalchemy>=2.0.0
+psycopg2-binary>=2.9.9
+
+# Image processing dependencies
+Pillow>=10.0.0
+numpy>=1.24.0
+python-multipart>=0.0.6
+rembg[gpu]>=2.0.50
+onnxruntime>=1.16.0
+
+# Google Cloud dependencies for AI Image services
+google-cloud-aiplatform>=1.38.0
+google-cloud-storage>=2.10.0
+google-generativeai>=0.3.0

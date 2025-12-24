@@ -1,0 +1,16 @@
+{
+  "placeholderImages": [
+    {
+      "id": "user-avatar",
+      "description": "Avatar for the user.",
+      "imageUrl": "https://images.unsplash.com/photo-1590086782792-42dd2350140d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NTkwMTExOTN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person portrait"
+    },
+    {
+      "id": "agent-avatar",
+      "description": "Avatar for the AI agent.",
+      "imageUrl": "https://images.unsplash.com/photo-1707353004969-bddabf327b18?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxyb2JvdCUyMGFic3RyYWN0fGVufDB8fHx8MTc1OTA0MzY3M3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "robot abstract"
+    }
+  ]
+}

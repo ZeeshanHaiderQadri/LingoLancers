@@ -1,0 +1,416 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light Mode - Purple/Lavender Theme */
+    --background: 260 60% 97%;
+    --foreground: 260 15% 20%;
+    --card: 0 0% 100%;
+    --card-foreground: 260 15% 20%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 260 15% 20%;
+    --primary: 262 84% 58%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 260 40% 95%;
+    --secondary-foreground: 260 15% 25%;
+    --muted: 260 30% 92%;
+    --muted-foreground: 260 10% 45%;
+    --accent: 170 60% 50%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 260 20% 88%;
+    --input: 260 20% 92%;
+    --ring: 262 84% 58%;
+    --chart-1: 262 84% 58%;
+    --chart-2: 170 60% 50%;
+    --chart-3: 200 70% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+    --radius: 0.75rem;
+
+    --sidebar-background: 260 50% 98%;
+    --sidebar-foreground: 260 15% 25%;
+    --sidebar-border: 260 20% 90%;
+    --sidebar-accent: 262 84% 58%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-ring: 262 84% 58%;
+  }
+
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 3.7% 15.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 262 84% 58%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 150 60% 50%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 262 84% 58%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+    
+    --sidebar-background: 240 10% 3.9%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-accent: 262 84% 58%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-ring: 262 84% 58%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: Arial, Helvetica, sans-serif;
+  }
+}
+
+@layer utilities {
+  .animated-gradient-border {
+      @apply relative p-px;
+  }
+  .animated-gradient-border::before {
+      content: '';
+      @apply absolute inset-0 z-0 rounded-[inherit];
+      background: conic-gradient(from var(--border-angle), hsl(var(--primary)), hsl(var(--accent)), hsl(var(--primary)));
+      animation: border-spin 3s linear infinite;
+  }
+  .dark .animated-gradient-border::before {
+      background: conic-gradient(from var(--border-angle), hsl(var(--primary)), hsl(var(--accent)), hsl(var(--primary)));
+  }
+
+  .animated-gradient-border > * {
+      @apply relative z-10;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Custom Scrollbar Styles */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: #374151;
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: #4B5563;
+  }
+
+  /* Hide scrollbar for chat messages */
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+body::before, body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 200%;
+    height: 200%;
+    z-index: -1;
+}
+
+body::before {
+    background-image: 
+        radial-gradient(1px circle at 5% 10%, hsl(var(--primary), 0.5) 1px, transparent 0),
+        radial-gradient(1px circle at 20% 30%, hsl(var(--primary), 0.5) 1px, transparent 0),
+        radial-gradient(1px circle at 35% 5%, hsl(var(--primary), 0.5) 1px, transparent 0),
+        radial-gradient(1px circle at 45% 40%, hsl(var(--primary), 0.5) 1px, transparent 0),
+        radial-gradient(1px circle at 60% 20%, hsl(var(--primary), 0.5) 1px, transparent 0),
+        radial-gradient(1px circle at 75% 35%, hsl(var(--primary), 0.5) 1px, transparent 0),
+        radial-gradient(1px circle at 90% 15%, hsl(var(--primary), 0.5) 1px, transparent 0);
+    background-size: 50% 50%;
+    animation: animate-stars 150s linear infinite;
+}
+
+body::after {
+    background-image: 
+        radial-gradient(1px circle at 10% 80%, hsl(var(--primary), 0.5) 1px, transparent 0),
+        radial-gradient(1px circle at 25% 60%, hsl(var(--primary), 0.5) 1px, transparent 0),
+        radial-gradient(1px circle at 40% 90%, hsl(var(--primary), 0.5) 1px, transparent 0),
+        radial-gradient(1px circle at 55% 70%, hsl(var(--primary), 0.5) 1px, transparent 0),
+        radial-gradient(1px circle at 70% 85%, hsl(var(--primary), 0.5) 1px, transparent 0),
+        radial-gradient(1px circle at 85% 55%, hsl(var(--primary), 0.5) 1px, transparent 0),
+        radial-gradient(1px circle at 95% 95%, hsl(var(--primary), 0.5) 1px, transparent 0);
+    background-size: 33.33% 33.33%;
+    animation: animate-stars 200s linear infinite reverse;
+}
+
+@keyframes animate-stars {
+    from {
+        transform: translate(0, 0);
+    }
+    to {
+        transform: translate(-50%, -50%);
+    }
+}
+
+/* Enhanced Lingo Master Agent Styles */
+.widget { 
+  /* Positioning handled by React component */
+  z-index: 9999; 
+  user-select: none; 
+  cursor: grab;
+  touch-action: none;
+  transition: all 200ms ease;
+}
+
+.widget:hover {
+  transform: scale(1.02);
+  filter: drop-shadow(0 8px 25px rgba(0, 0, 0, 0.3));
+}
+
+.widget.dragging { 
+  cursor: grabbing;
+  transform: scale(1.05);
+  filter: drop-shadow(0 12px 35px rgba(0, 0, 0, 0.4));
+  z-index: 10000;
+}
+
+.wrap { display:grid; gap:10px; place-items:center; padding:10px; background:rgba(22,14,46,.66); border:1px solid #2a2057; border-radius:18px; box-shadow:0 18px 50px rgba(0,0,0,.45); backdrop-filter: blur(8px); width: 360px; }
+.btns { display:flex; gap:8px; flex-wrap:wrap; justify-content:center }
+.btns button { padding:8px 12px; border-radius:12px; border:0; background:linear-gradient(135deg,#7a2cff, #00e08a); color:#0b0620; font-weight:700; cursor:pointer; box-shadow:0 8px 30px rgba(122,44,255,.35); }
+.btns button.secondary{ background:#191133; color:#d5fbe3; box-shadow:0 8px 30px rgba(0,0,0,.35); border:1px solid #2a2057 }
+.hint{opacity:.75;font-size:11px;text-align:center;max-width:280px}
+
+/* Enhanced Lingo Agent SVG Styling */
+.bot { 
+  width: min(29vmin, 160px); 
+  height: auto; 
+  overflow: visible; 
+  touch-action: none;
+  transition: all 300ms ease;
+}
+
+/* Subtle hover glow effect */
+.bot:hover .face-outer { 
+  filter: url(#glow) drop-shadow(0 0 10px rgba(0, 255, 136, 0.3)); 
+}
+
+/* Enhanced blink animation */
+.eyelids { 
+  transform-origin: 160px 135px; 
+  transition: transform 120ms ease-out; 
+}
+.blink .eyelids { 
+  transform: scaleY(0.08); 
+}
+
+/* Enhanced mouth animations */
+.mouth { 
+  transform-origin: 160px 205px; 
+  transition: transform 80ms ease-out;
+}
+
+/* Idle talking loop with more natural movement */
+@keyframes talkLoop { 
+  0%, 100% { transform: scaleY(0.3); } 
+  25% { transform: scaleY(0.8); }
+  50% { transform: scaleY(1.2); } 
+  75% { transform: scaleY(0.6); }
+}
+.idleTalking .mouth { 
+  animation: talkLoop 1200ms ease-in-out infinite; 
+}
+
+/* Enhanced nose pulse animation */
+.nose { 
+  transform-box: fill-box; 
+  transform-origin: 50% 60%; 
+  transform: scale(var(--noseScale, 1)); 
+  transition: transform 120ms ease-out; 
+}
+
+/* Smooth pupil tracking */
+.pupil { 
+  transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1); 
+  transform-origin: center; 
+}
+
+/* Enhanced mouth visibility and glow */
+#mouthRect { 
+  stroke: #0b0620; 
+  stroke-width: 2.2; 
+  filter: url(#glow) drop-shadow(0 0 5px rgba(0, 255, 136, 0.4)); 
+  transition: all 80ms ease-out;
+}
+
+/* Antenna pulse when active */
+.bot.listening .antenna {
+  animation: antennaPulse 1000ms ease-in-out infinite;
+}
+
+@keyframes antennaPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* Voice activity indicator */
+.bot.speaking .nose {
+  animation: noseGlow 300ms ease-in-out infinite alternate;
+}
+
+@keyframes noseGlow {
+  from { filter: drop-shadow(0 0 5px rgba(0, 255, 136, 0.5)); }
+  to { filter: drop-shadow(0 0 15px rgba(0, 255, 136, 0.8)); }
+}
+
+/* Widget entrance animation */
+@keyframes widgetEntrance {
+  from {
+    transform: scale(0.8) translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+.widget {
+  animation: widgetEntrance 300ms ease-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .bot {
+    width: min(25vmin, 120px);
+  }
+  
+  .wrap {
+    width: 300px;
+    padding: 8px;
+  }
+}
+
+.text-gradient-multi {
+  background: linear-gradient(to right, #A770EF, #43A0E5, #34D399);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+}
+
+.card-gradient-border {
+  position: relative;
+  border-radius: 0.75rem;
+  padding: 1px;
+  background: linear-gradient(to right, #A770EF, #43A0E5, #34D399);
+  background-size: 200% 100%;
+}
+
+.card-gradient-border > * {
+  border-radius: 0.7rem;
+  background: hsl(var(--card));
+}
+
+.card-gradient-border:hover {
+  animation: borderAnimation 3s ease infinite;
+}
+
+@keyframes borderAnimation {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Light mode specific improvements */
+.dark .card-gradient-border > * {
+  background: hsl(var(--card));
+  color: var(--card-foreground);
+}
+
+/* Additional card styling for better light mode appearance */
+.card {
+  background: hsl(var(--card)) !important;
+  color: var(--card-foreground) !important;
+}
+
+/* Chat UI Enhancement Animations */
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.2s ease-out;
+}
+
+/* Gradient text animation */
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.gradient-text-animated {
+  background-size: 200% auto;
+  animation: gradient-shift 3s ease infinite;
+}

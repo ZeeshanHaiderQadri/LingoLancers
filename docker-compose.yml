@@ -1,0 +1,67 @@
+services:
+  # PostgreSQL Database
+  database:
+    image: postgres:15-alpine
+    container_name: lingo_database
+    environment:
+      POSTGRES_DB: lingo_production
+      POSTGRES_USER: lingo_user
+      POSTGRES_PASSWORD: lingo_secure_password_2024
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/migrations:/docker-entrypoint-initdb.d
+    networks:
+      - lingo_network
+    restart: unless-stopped
+
+  # FastAPI Backend
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: lingo_backend
+    environment:
+      - DATABASE_URL=postgresql://lingo_user:lingo_secure_password_2024@database:5432/lingo_production
+      - AZURE_OPENAI_API_KEY=${AZURE_OPENAI_API_KEY}
+      - AZURE_SPEECH_KEY=${AZURE_SPEECH_KEY}
+      - AZURE_SPEECH_REGION=${AZURE_SPEECH_REGION}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - SERP_API_KEY=${SERP_API_KEY}
+      - DEEPGRAM_API_KEY=${DEEPGRAM_API_KEY}
+    ports:
+      - "8000:8000"
+    depends_on:
+      - database
+    networks:
+      - lingo_network
+    restart: unless-stopped
+    volumes:
+      - ./backend/.env:/app/.env
+
+  # Next.js Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: lingo_frontend
+    environment:
+      - NEXT_PUBLIC_LINGO_API_URL=http://localhost:8000
+      - BACKEND_URL=http://backend:8000
+      - NODE_ENV=production
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - lingo_network
+    restart: unless-stopped
+
+networks:
+  lingo_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local

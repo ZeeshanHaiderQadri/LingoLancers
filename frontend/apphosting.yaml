@@ -1,0 +1,17 @@
+# Azure App Service Configuration
+# This configuration can be used for Azure deployment
+
+runConfig:
+  # Increase this value if you'd like to automatically spin up
+  # more instances in response to increased traffic.
+  maxInstances: 10
+  
+env:
+  - name: NODE_ENV
+    value: production
+  - name: NEXT_PUBLIC_API_BASE_URL
+    value: https://lingo-lancers-backend.azurewebsites.net
+  
+resources:
+  cpu: 1
+  memory: 2Gi

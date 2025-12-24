@@ -1,0 +1,6 @@
+# Master Lingo Agent Dependencies
+azure-cognitiveservices-speech>=1.31.0
+deepgram-sdk>=3.0.0
+# pyaudio>=0.2.13  # Removed for Docker compatibility - using Azure Speech Services instead
+websockets>=12.0
+httpx>=0.25.0

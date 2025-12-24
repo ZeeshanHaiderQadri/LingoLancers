@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Test</title>
+</head>
+<body>
+    <h1>API Connection Test</h1>
+    <button onclick="testConnection()">Test API Connection</button>
+    <div id="result"></div>
+
+    <script>
+        async function testConnection() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing...';
+            
+            try {
+                // Test health endpoint
+                const healthResponse = await fetch('http://localhost:8001/health');
+                const healthData = await healthResponse.json();
+                
+                // Test task creation
+                const taskResponse = await fetch('http://localhost:8001/tasks', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: 'test_user',
+                        request: 'Plan a trip to Paris for 5 days',
+                        team: 'travel_planning'
+                    })
+                });
+                const taskData = await taskResponse.json();
+                
+                resultDiv.innerHTML = `
+                    <h2>Health Check:</h2>
+                    <pre>${JSON.stringify(healthData, null, 2)}</pre>
+                    <h2>Task Creation:</h2>
+                    <pre>${JSON.stringify(taskData, null, 2)}</pre>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>

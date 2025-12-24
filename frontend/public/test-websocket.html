@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Test</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #00ff88;
+        }
+        button {
+            background: #7a2cff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #9a4cff;
+        }
+        #log {
+            background: #0a0a0a;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .success { color: #00ff88; }
+        .error { color: #ff4444; }
+        .info { color: #44aaff; }
+    </style>
+</head>
+<body>
+    <h1>🔌 WebSocket Connection Test</h1>
+    <p>Test the Lingo Agent WebSocket connection</p>
+    
+    <button onclick="connect()">Connect</button>
+    <button onclick="disconnect()">Disconnect</button>
+    <button onclick="sendPing()">Send Ping</button>
+    <button onclick="clearLog()">Clear Log</button>
+    
+    <div id="log"></div>
+    
+    <script>
+        let ws = null;
+        
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = type;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function connect() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                log('Already connected', 'info');
+                return;
+            }
+            
+            log('🔌 Connecting to ws://localhost:8000/api/lingo/ws...', 'info');
+            
+            try {
+                ws = new WebSocket('ws://localhost:8000/api/lingo/ws');
+                
+                ws.onopen = () => {
+                    log('✅ WebSocket connected!', 'success');
+                };
+                
+                ws.onmessage = (event) => {
+                    log(`📨 Received: ${event.data}`, 'success');
+                    
+                    try {
+                        const data = JSON.parse(event.data);
+                        log(`   Type: ${data.type}`, 'info');
+                        if (data.destination) log(`   Destination: ${data.destination}`, 'info');
+                        if (data.workflow_type) log(`   Workflow: ${data.workflow_type}`, 'info');
+                    } catch (e) {
+                        // Not JSON
+                    }
+                };
+                
+                ws.onclose = (event) => {
+                    log(`🔌 WebSocket closed (code: ${event.code}, reason: ${event.reason || 'none'})`, 'error');
+                    ws = null;
+                };
+                
+                ws.onerror = (error) => {
+                    log(`❌ WebSocket error: ${error}`, 'error');
+                    console.error('WebSocket error:', error);
+                };
+            } catch (err) {
+                log(`❌ Failed to create WebSocket: ${err.message}`, 'error');
+                console.error('WebSocket creation error:', err);
+            }
+        }
+        
+        function disconnect() {
+            if (ws) {
+                log('Disconnecting...', 'info');
+                ws.close();
+                ws = null;
+            } else {
+                log('Not connected', 'info');
+            }
+        }
+        
+        function sendPing() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                log('❌ Not connected', 'error');
+                return;
+            }
+            
+            const message = JSON.stringify({ type: 'ping' });
+            log(`📤 Sending: ${message}`, 'info');
+            ws.send(message);
+        }
+        
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+        
+        // Auto-connect on load
+        window.onload = () => {
+            log('Page loaded. Click "Connect" to test WebSocket', 'info');
+        };
+    </script>
+</body>
+</html>

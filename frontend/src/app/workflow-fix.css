@@ -1,0 +1,22 @@
+/* Fix for workflow progress cards - ensure text is visible on dark backgrounds */
+
+[data-workflow-card] {
+  background-color: rgb(31, 41, 55) !important; /* gray-800 */
+  color: rgb(243, 244, 246) !important; /* gray-100 */
+}
+
+[data-workflow-card] .text-gray-900 {
+  color: rgb(243, 244, 246) !important; /* gray-100 */
+}
+
+[data-workflow-card] .text-gray-700 {
+  color: rgb(229, 231, 235) !important; /* gray-200 */
+}
+
+[data-workflow-card] .text-gray-600 {
+  color: rgb(209, 213, 219) !important; /* gray-300 */
+}
+
+[data-workflow-card] .text-gray-500 {
+  color: rgb(156, 163, 175) !important; /* gray-400 */
+}

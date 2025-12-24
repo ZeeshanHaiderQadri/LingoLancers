@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Test Floating Lingo Bot</title>
+  <style>
+    html, body {
+      height: 100%;
+      background: #0b0620;
+      margin: 0;
+      font-family: system-ui, 'Segoe UI', Inter, Arial;
+      color: #e6f6ff;
+    }
+    .info {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: rgba(26, 17, 62, 0.9);
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid #2a2057;
+      max-width: 400px;
+    }
+    h1 {
+      margin: 0 0 10px 0;
+      font-size: 24px;
+      background: linear-gradient(135deg, #7a2cff, #00e08a);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    ul {
+      margin: 10px 0;
+      padding-left: 20px;
+    }
+    li {
+      margin: 5px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="info">
+    <h1>🤖 Floating Lingo Bot Test</h1>
+    <p>The animated bot should appear in the bottom-right corner!</p>
+    <ul>
+      <li>✨ Eyes follow your mouse</li>
+      <li>👁️ Random blinking</li>
+      <li>🎙️ Click "Talk" to test mic</li>
+      <li>🖱️ Drag to reposition</li>
+      <li>👄 Mouth animates with audio</li>
+    </ul>
+  </div>
+
+  <!-- The floating bot widget -->
+  <div id="lingoWidget" class="widget">
+    <div class="wrap">
+      <svg id="lingo" class="bot idleTalking" viewBox="0 0 320 360" role="img" aria-label="Lingo voice agent">
+        <defs>
+          <linearGradient id="grad-purple" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#7a2cff"/>
+            <stop offset="100%" stop-color="#4416b3"/>
+          </linearGradient>
+          <linearGradient id="grad-green" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#00ff88"/>
+            <stop offset="100%" stop-color="#18c37a"/>
+          </linearGradient>
+          <filter id="softShadow" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#000" flood-opacity=".45"/>
+          </filter>
+          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="6" result="b"/>
+            <feMerge>
+              <feMergeNode in="b"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+        
+        <ellipse cx="160" cy="330" rx="85" ry="20" fill="#000" opacity=".35" filter="url(#softShadow)"/>
+        
+        <g class="body" filter="url(#softShadow)">
+          <rect x="85" y="240" rx="36" ry="36" width="150" height="80" fill="url(#grad-purple)"/>
+          <text x="160" y="293" text-anchor="middle" font-size="32" font-weight="800" fill="url(#grad-green)" style="letter-spacing:1px">LINGO</text>
+        </g>
+        
+        <g class="head" transform="translate(0,-10)" filter="url(#softShadow)">
+          <rect class="face-outer" x="40" y="60" rx="40" ry="40" width="240" height="170" fill="url(#grad-purple)" stroke="#00e08a" stroke-width="3"/>
+          <rect x="62" y="82" rx="28" ry="28" width="196" height="126" fill="#2a1b57"/>
+          <circle cx="40" cy="145" r="18" fill="url(#grad-green)"/>
+          <circle cx="280" cy="145" r="18" fill="url(#grad-green)"/>
+          <line x1="160" y1="50" x2="160" y2="25" stroke="#00ff88" stroke-width="5"/>
+          <circle cx="160" cy="20" r="10" fill="url(#grad-green)"/>
+          
+          <g class="eyes">
+            <circle cx="115" cy="140" r="26" fill="#1b113e" stroke="#00e08a" stroke-width="3"/>
+            <circle cx="205" cy="140" r="26" fill="#1b113e" stroke="#00e08a" stroke-width="3"/>
+            <circle id="pL" class="pupil" cx="115" cy="140" r="12" fill="url(#grad-green)"/>
+            <circle id="pR" class="pupil" cx="205" cy="140" r="12" fill="url(#grad-green)"/>
+            
+            <g class="eyelids">
+              <rect x="89" y="114" width="52" height="52" rx="26" ry="26" fill="#2a1b57"/>
+              <rect x="179" y="114" width="52" height="52" rx="26" ry="26" fill="#2a1b57"/>
+            </g>
+          </g>
+          
+          <g class="nose" transform="translate(140,160)">
+            <path d="M20 0 C32 0 40 8 40 20 C40 32 32 40 20 40 C8 40 0 32 0 20 C0 8 8 0 20 0 Z" fill="url(#grad-green)"/>
+            <g fill="#1b113e" transform="translate(8,12)">
+              <rect x="0" y="4" width="3" height="8" rx="1"/>
+              <rect x="5" y="0" width="3" height="16" rx="1"/>
+              <rect x="10" y="6" width="3" height="6" rx="1"/>
+              <rect x="15" y="2" width="3" height="12" rx="1"/>
+            </g>
+          </g>
+          
+          <g class="mouth" transform="translate(130,196)">
+            <rect id="mouthRect" x="0" y="0" width="60" height="18" rx="9" ry="9" fill="#00ff88" stroke="#00c070" stroke-width="2.4" filter="url(#glow)"/>
+            <rect id="mouthSlit" x="6" y="5" width="48" height="8" rx="4" ry="4" fill="#0d0a24"/>
+          </g>
+        </g>
+      </svg>
+      
+      <div class="btns" onclick="event.stopPropagation()">
+        <button id="useMic">🎙️ Talk</button>
+        <button id="stopMic">◼ Stop</button>
+        <button id="settingsBtn">⚙️</button>
+      </div>
+      
+      <div id="settingsPanel" class="settings-panel" onclick="event.stopPropagation()">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h3 style="color: #e8e8ff; font-size: 14px; font-weight: bold; margin: 0;">Voice Settings</h3>
+          <button id="closeSettings" style="background: none; border: none; color: #e8e8ff; font-size: 20px; cursor: pointer; padding: 0; line-height: 1;">×</button>
+        </div>
+        
+        <div style="margin-bottom: 12px;">
+          <label style="color: #a8a8c8; font-size: 11px; font-weight: 600; display: block; margin-bottom: 6px;">Female Voices</label>
+          <select id="femaleVoice" style="width: 100%; background: #2a1b57; color: #e8e8ff; border: 1px solid #3a2b67; border-radius: 8px; padding: 8px 12px; font-size: 11px; cursor: pointer;">
+            <option value="en-US-AriaNeural">Aria (Professional, 90+ languages)</option>
+            <option value="en-US-JennyNeural">Jenny (Friendly)</option>
+            <option value="en-US-SaraNeural">Sara (Conversational)</option>
+          </select>
+        </div>
+        
+        <div style="margin-bottom: 12px;">
+          <label style="color: #a8a8c8; font-size: 11px; font-weight: 600; display: block; margin-bottom: 6px;">Male Voices</label>
+          <select id="maleVoice" style="width: 100%; background: #2a1b57; color: #e8e8ff; border: 1px solid #3a2b67; border-radius: 8px; padding: 8px 12px; font-size: 11px; cursor: pointer;">
+            <option value="en-US-GuyNeural">Guy (Professional, 90+ languages)</option>
+            <option value="en-US-DavisNeural">Davis (Friendly)</option>
+            <option value="en-US-TonyNeural">Tony (Authoritative)</option>
+          </select>
+        </div>
+        
+        <div style="padding-top: 12px; border-top: 1px solid #2a2057;">
+          <p id="statusText" style="color: #a8a8c8; font-size: 10px; margin: 0;">⚪ Agent Inactive</p>
+        </div>
+      </div>
+    </div>
+  </div>div></option></select></label>""
+
+  <style>
+    .widget {
+      position: fixed;
+      inset: auto 18px 18px auto;
+      z-index: 9999;
+      user-select: none;
+      cursor: grab;
+    }
+    .widget.dragging {
+      cursor: grabbing;
+    }
+    .wrap {
+      position: relative;
+      display: grid;
+      gap: 8px;
+      place-items: center;
+      padding: 0;
+      background: transparent;
+      border: none;
+      width: auto;
+      overflow: visible;
+    }
+    .btns {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 6px;
+    }
+    button {
+      padding: 6px 12px;
+      border-radius: 12px;
+      border: 0;
+      font-weight: 800;
+      font-size: 11px;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(0,0,0,.35);
+      min-width: 60px;
+    }
+    #useMic {
+      background: linear-gradient(135deg, #7a2cff, #00e08a);
+      color: #0b0620;
+    }
+    #stopMic {
+      background: #2a1b57;
+      color: #e8e8ff;
+      border: 1px solid #2a2057;
+    }
+    #settingsBtn {
+      background: #2a1b57;
+      color: #e8e8ff;
+      border: 1px solid #2a2057;
+      min-width: auto;
+      padding: 6px 8px;
+    }
+    .settings-panel {
+      position: absolute;
+      bottom: 100%;
+      right: 0;
+      margin-bottom: 8px;
+      background: #1a113e;
+      border: 1px solid #2a2057;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.5);
+      min-width: 280px;
+      display: none;
+    }
+    .settings-panel.show {
+      display: block;
+    }
+    svg {
+      width: min(28vmin, 140px);
+      height: auto;
+      overflow: visible;
+      touch-action: none;
+    }
+    .eyelids {
+      transform-origin: 160px 135px;
+      transition: transform 120ms ease;
+    }
+    .blink .eyelids {
+      transform: scaleY(0.08);
+    }
+    .mouth {
+      transform-origin: 160px 205px;
+    }
+    @keyframes talkLoop {
+      0%, 100% { transform: scaleY(.2) }
+      50% { transform: scaleY(1) }
+    }
+    .idleTalking .mouth {
+      animation: talkLoop 700ms ease-in-out infinite;
+    }
+    .nose {
+      transform-box: fill-box;
+      transform-origin: 50% 60%;
+      transform: scale(var(--noseScale, 1));
+      transition: transform 80ms linear;
+    }
+    .pupil {
+      transition: transform 100ms ease;
+      transform-origin: center;
+    }
+  </style>
+
+  <script>
+    const svg = document.getElementById('lingo');
+    const widget = document.getElementById('lingoWidget');
+    const mouth = document.getElementById('mouthRect');
+    const mouthSlit = document.getElementById('mouthSlit');
+    const nose = svg.querySelector('.nose');
+    const btnMic = document.getElementById('useMic');
+    const btnStop = document.getElementById('stopMic');
+    const btnSettings = document.getElementById('settingsBtn');
+    const btnCloseSettings = document.getElementById('closeSettings');
+    const settingsPanel = document.getElementById('settingsPanel');
+    const femaleVoiceSelect = document.getElementById('femaleVoice');
+    const maleVoiceSelect = document.getElementById('maleVoice');
+    const statusText = document.getElementById('statusText');
+    const pL = document.getElementById('pL');
+    const pR = document.getElementById('pR');
+    
+    let audioCtx, analyser, dataArray, source, rafId;
+    let selectedVoice = 'en-US-AriaNeural';
+    let isListening = false;
+    
+    function setTalkAmount(a) {
+      const minH = 6, maxH = 38;
+      const h = minH + (maxH - minH) * a;
+      mouth.setAttribute('height', h.toFixed(2));
+      mouth.setAttribute('y', (9 - h/2).toFixed(2));
+      
+      const innerH = Math.max(6, Math.min(14, h * 0.45));
+      const innerY = (h - innerH) / 2;
+      const innerW = 48;
+      const innerX = (60 - innerW) / 2;
+      
+      if (mouthSlit) {
+        mouthSlit.setAttribute('height', innerH.toFixed(2));
+        mouthSlit.setAttribute('y', innerY.toFixed(2));
+        mouthSlit.setAttribute('x', innerX.toFixed(2));
+      }
+      
+      const s = 1 + a * 0.25;
+      svg.style.setProperty('--noseScale', s.toFixed(3));
+    }
+    
+    function scheduleBlink() {
+      const t = 1400 + Math.random() * 3000;
+      setTimeout(() => {
+        svg.classList.add('blink');
+        setTimeout(() => {
+          svg.classList.remove('blink');
+          scheduleBlink();
+        }, 120);
+      }, t);
+    }
+    scheduleBlink();
+    
+    window.addEventListener('mousemove', (e) => {
+      const r = 4;
+      const box = svg.getBoundingClientRect();
+      const mx = e.clientX - box.left;
+      const my = e.clientY - box.top;
+      const nx = (mx / box.width) * 320;
+      const ny = (my / box.height) * 360;
+      const dx = Math.max(-r, Math.min(r, (nx - 160) / 18));
+      const dy = Math.max(-r, Math.min(r, (ny - 140) / 18));
+      pL.style.transform = `translate(${dx}px, ${dy}px)`;
+      pR.style.transform = `translate(${dx}px, ${dy}px)`;
+    });
+    
+    async function startMic() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: { echoCancellation: true, noiseSuppression: true },
+          video: false
+        });
+        
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 2048;
+        const bufferLength = analyser.fftSize;
+        dataArray = new Uint8Array(bufferLength);
+        source = audioCtx.createMediaStreamSource(stream);
+        source.connect(analyser);
+        
+        svg.classList.remove('idleTalking');
+        isListening = true;
+        statusText.textContent = '🟢 Agent Active';
+        btnMic.disabled = true;
+        btnStop.disabled = false;
+        
+        const smooth = (prev, next, k = 0.2) => prev + (next - prev) * k;
+        let sm = 0;
+        
+        function tick() {
+          analyser.getByteTimeDomainData(dataArray);
+          let sum = 0;
+          for (let i = 0; i < dataArray.length; i++) {
+            const v = (dataArray[i] - 128) / 128;
+            sum += v * v;
+          }
+          const rms = Math.sqrt(sum / dataArray.length);
+          const level = Math.max(0, (rms - 0.02) / 0.2);
+          sm = smooth(sm, Math.min(level, 1), 0.35);
+          setTalkAmount(sm);
+          rafId = requestAnimationFrame(tick);
+        }
+        tick();
+        
+        // Start backend agent
+        fetch('http://localhost:8000/api/lingo/start', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            voice: selectedVoice,
+            language: 'en'
+          })
+        }).catch(err => console.warn('Backend not available:', err));
+        
+      } catch (err) {
+        console.warn('Mic error:', err);
+        svg.classList.add('idleTalking');
+        isListening = false;
+        statusText.textContent = '⚪ Agent Inactive';
+      }
+    }
+    
+    function stopMic() {
+      if (rafId) cancelAnimationFrame(rafId);
+      if (source && source.mediaStream) {
+        source.mediaStream.getTracks().forEach(t => t.stop());
+      }
+      if (audioCtx) {
+        audioCtx.close();
+      }
+      svg.classList.add('idleTalking');
+      setTalkAmount(0.35);
+      isListening = false;
+      statusText.textContent = '⚪ Agent Inactive';
+      btnMic.disabled = false;
+      btnStop.disabled = true;
+      
+      // Stop backend agent
+      fetch('http://localhost:8000/api/lingo/stop', {
+        method: 'POST'
+      }).catch(err => console.warn('Backend not available:', err));
+    }
+    
+    btnMic.addEventListener('click', startMic);
+    btnStop.addEventListener('click', stopMic);
+    btnStop.disabled = true;
+    
+    // Settings panel toggle
+    btnSettings.addEventListener('click', () => {
+      settingsPanel.classList.toggle('show');
+    });
+    
+    btnCloseSettings.addEventListener('click', () => {
+      settingsPanel.classList.remove('show');
+    });
+    
+    // Voice selection
+    femaleVoiceSelect.addEventListener('change', (e) => {
+      selectedVoice = e.target.value;
+      maleVoiceSelect.value = '';
+      console.log('Selected voice:', selectedVoice);
+      
+      if (isListening) {
+        fetch('http://localhost:8000/api/lingo/voice', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ voice: selectedVoice, language: 'en' })
+        }).catch(err => console.warn('Backend not available:', err));
+      }
+    });
+    
+    maleVoiceSelect.addEventListener('change', (e) => {
+      selectedVoice = e.target.value;
+      femaleVoiceSelect.value = '';
+      console.log('Selected voice:', selectedVoice);
+      
+      if (isListening) {
+        fetch('http://localhost:8000/api/lingo/voice', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ voice: selectedVoice, language: 'en' })
+        }).catch(err => console.warn('Backend not available:', err));
+      }
+    });
+    
+    // Dragging
+    let drag = { active: false, offX: 0, offY: 0 };
+    
+    function bound(val, min, max) {
+      return Math.max(min, Math.min(max, val));
+    }
+    
+    function startDrag(x, y) {
+      const r = widget.getBoundingClientRect();
+      drag.active = true;
+      widget.classList.add('dragging');
+      drag.offX = x - r.left;
+      drag.offY = y - r.top;
+    }
+    
+    function moveDrag(x, y) {
+      if (!drag.active) return;
+      const w = widget.offsetWidth, h = widget.offsetHeight;
+      const maxX = window.innerWidth - w;
+      const maxY = window.innerHeight - h;
+      const nx = bound(x - drag.offX, 0, maxX);
+      const ny = bound(y - drag.offY, 0, maxY);
+      widget.style.left = nx + 'px';
+      widget.style.top = ny + 'px';
+      widget.style.right = 'auto';
+      widget.style.bottom = 'auto';
+    }
+    
+    function endDrag() {
+      drag.active = false;
+      widget.classList.remove('dragging');
+    }
+    
+    widget.addEventListener('mousedown', e => {
+      if (e.target.tagName === 'BUTTON') return;
+      startDrag(e.clientX, e.clientY);
+    });
+    
+    window.addEventListener('mousemove', e => moveDrag(e.clientX, e.clientY));
+    window.addEventListener('mouseup', endDrag);
+    
+    setTalkAmount(0.35);
+    
+    console.log('✅ Floating Lingo Bot loaded successfully!');
+  </script>
+</body>
+</html>
