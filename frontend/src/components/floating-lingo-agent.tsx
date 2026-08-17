@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { agentApi, agentWebSocket, hasAgentBackend } from "@/lib/runtime-config";
 
 interface FloatingLingoAgentProps {
   onNavigate?: (destination: string, data?: any) => void;
@@ -11,9 +12,6 @@ export function FloatingLingoAgent({
   onNavigate,
   onStartWorkflow,
 }: FloatingLingoAgentProps) {
-  // Use environment variable or default to 8000
-  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
-  const WS_URL = BACKEND_URL.replace("http", "ws");
   
   const [isListening, setIsListening] = useState(false);
   const [isCardMode, setIsCardMode] = useState(false);
@@ -47,7 +45,11 @@ export function FloatingLingoAgent({
     const fetchVoices = async () => {
       try {
         setVoicesLoading(true);
-        const response = await fetch(`${BACKEND_URL}/api/lingo/voices`);
+        if (!hasAgentBackend) {
+          setVoices(getFallbackVoices());
+          return;
+        }
+        const response = await fetch(agentApi("/api/lingo/voices"));
         if (response.ok) {
           const data = await response.json();
           console.log("✅ Fetched voices from backend:", Object.keys(data).length, "language categories");
@@ -70,7 +72,7 @@ export function FloatingLingoAgent({
     };
 
     fetchVoices();
-  }, [BACKEND_URL]);
+  }, []);
 
   // Organize voices from backend API format
   const organizeVoicesFromBackend = (backendData: any) => {
@@ -207,13 +209,16 @@ export function FloatingLingoAgent({
       return;
     }
 
-    console.log(
-      `🔌 Attempting WebSocket connection to ${WS_URL}/api/lingo/ws`
-    );
+    const socketUrl = agentWebSocket("/api/lingo/ws");
+    if (!socketUrl) {
+      console.info("Lingo voice is waiting for an Azure runtime URL.");
+      return;
+    }
+    console.log(`🔌 Attempting WebSocket connection to ${socketUrl}`);
     setConnectionStatus("connecting");
 
     try {
-      const ws = new WebSocket(`${WS_URL}/api/lingo/ws`);
+      const ws = new WebSocket(socketUrl);
 
       ws.onopen = () => {
         console.log("✅ WebSocket connected to Lingo Agent");
@@ -487,7 +492,7 @@ export function FloatingLingoAgent({
 
       // Start backend agent FIRST
       try {
-        const response = await fetch(`${BACKEND_URL}/api/lingo/start`, {
+        const response = await fetch(agentApi("/api/lingo/start"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -533,7 +538,7 @@ export function FloatingLingoAgent({
 
     // Stop backend agent
     try {
-      await fetch(`${BACKEND_URL}/api/lingo/stop`, {
+      await fetch(agentApi("/api/lingo/stop"), {
         method: "POST",
       });
       console.log("✅ Backend agent stopped");
@@ -555,7 +560,7 @@ export function FloatingLingoAgent({
 
     if (isListening) {
       try {
-        await fetch(`${BACKEND_URL}/api/lingo/voice`, {
+        await fetch(agentApi("/api/lingo/voice"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ voice, language: voiceData?.language || selectedLanguage }),
@@ -571,7 +576,7 @@ export function FloatingLingoAgent({
 
     if (isListening) {
       try {
-        await fetch(`${BACKEND_URL}/api/lingo/voice`, {
+        await fetch(agentApi("/api/lingo/voice"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ voice: selectedVoice, language: lang }),
