@@ -266,7 +266,16 @@ IMPORTANT: Keep ALL responses very SHORT since this is voice conversation. Maxim
   }
 }
 
-// Create singleton instance
-export const geminiService = new GeminiService();
+// Gemini is an optional legacy capability.  Initialising it at module load time
+// made every page that imports the general API client fail to render or build
+// when a Gemini key was not configured. Mission Control uses Microsoft Foundry,
+// so keep this capability opt-in instead of making it a deployment requirement.
+const geminiApiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+
+export const geminiService = geminiApiKey && geminiApiKey !== 'your-gemini-api-key-here'
+  ? new GeminiService(geminiApiKey)
+  : ({
+      isReady: () => false,
+    } as GeminiService);
 
 export default GeminiService;
