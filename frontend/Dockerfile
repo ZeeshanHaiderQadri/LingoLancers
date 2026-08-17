@@ -16,6 +16,11 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Build the application
+ARG NEXT_PUBLIC_LINGO_API_URL
+ARG BACKEND_URL
+ENV NEXT_PUBLIC_LINGO_API_URL=$NEXT_PUBLIC_LINGO_API_URL
+ENV BACKEND_URL=$BACKEND_URL
+
 RUN npm run build
 
 # Production image, copy all the files and run next

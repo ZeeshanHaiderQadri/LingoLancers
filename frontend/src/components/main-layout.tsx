@@ -36,6 +36,7 @@ import AvatarView from './views/avatar-view';
 import FinanceView from './views/finance-view';
 import LancersTeamsView from './views/lancers-teams-view';
 import AgenticWorkflowView from './views/agentic-workflow-view';
+import MissionControlView from './views/mission-control-view';
 import EnhancedTeamDashboard from './enhanced-team-dashboard';
 import BlogTeamDashboard from './blog-team/blog-team-dashboard';
 import { TravelTeamDashboard } from './travel-team';
@@ -46,7 +47,7 @@ import ImageEditingDashboard from './image-editing-dashboard';
 import NanoBananaView from './views/nano-banana-view';
 import { AppSidebar } from './app-sidebar';
 
-type View = 'chat' | 'models' | 'settings' | 'documents' | 'social' | 'influencer' | 'marketing' | 'content' | 'image' | 'video' | 'audio' | 'admin' | 'other' | 'smart-bots' | 'code' | 'lancer-builder' | 'virtual-try-on' | 'avatar' | 'finance' | 'lancers-teams' | 'blog-team' | 'travel-team' | 'nano-banana';
+type View = 'chat' | 'missions' | 'models' | 'settings' | 'documents' | 'social' | 'influencer' | 'marketing' | 'content' | 'image' | 'video' | 'audio' | 'admin' | 'other' | 'smart-bots' | 'code' | 'lancer-builder' | 'virtual-try-on' | 'avatar' | 'finance' | 'lancers-teams' | 'blog-team' | 'travel-team' | 'nano-banana';
 type SubView = string;
 
 type TeamDashboardState = {
@@ -166,6 +167,7 @@ export default function MainLayout() {
 
     switch (activeView) {
       case 'models': return <ApiSettingsView initialTab={activeSubView} />;
+      case 'missions': return <MissionControlView />;
       case 'settings': return <SettingsView />;
       case 'documents': return <DocumentsView />;
       case 'social': return <AiSocialMediaView initialTab={activeSubView} />;
@@ -199,6 +201,7 @@ export default function MainLayout() {
     }
     switch (view) {
       case 'models': return 'Integrations & API Keys';
+      case 'missions': return 'Mission Control';
       case 'settings': return 'Settings';
       case 'documents': return 'Documents';
       case 'social': return 'AI Social Media Suite';
@@ -266,7 +269,10 @@ export default function MainLayout() {
       )}
 
       <SidebarProvider>
-        <AppSidebar activeView={activeView} onNavigate={handleNavigation} />
+        <AppSidebar
+          activeView={activeView}
+          onNavigate={(view, subView) => handleNavigation(view as View, subView as SubView)}
+        />
 
         <SidebarInset className="h-full overflow-hidden flex flex-col">
           <header className="flex h-14 items-center gap-4 border-b bg-background/90 px-4 lg:h-[60px] lg:px-6 sticky top-0 z-10 backdrop-blur-md flex-shrink-0">
@@ -350,23 +356,6 @@ export default function MainLayout() {
             if (subView) {
               setActiveSubView(subView);
             }
-          }}
-          onStartWorkflow={(workflowType, data) => {
-            console.log(`🚀 Starting workflow from Voice Agent: ${workflowType}`, data);
-
-            // Store workflow data if present
-            if (data) {
-              sessionStorage.setItem(`${workflowType}_workflow_data`, JSON.stringify(data));
-            }
-
-            // Map workflow types to team names if necessary
-            const teamMap: Record<string, string> = {
-              'travel': 'travel-team',
-              'blog': 'blog-team',
-            };
-
-            const teamName = teamMap[workflowType] || workflowType;
-            handleLaunchWorkflow(teamName);
           }}
         />
       </div>

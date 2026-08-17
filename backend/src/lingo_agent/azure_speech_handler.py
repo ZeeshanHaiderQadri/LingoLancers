@@ -220,15 +220,10 @@ class AzureSpeechHandler:
             logger.error(f"Error in recognition: {e}")
             return None
     
-    async def synthesize_to_buffer(self, text: str, voice: Optional[str] = None, language: Optional[str] = None) -> bytes:
+    async def synthesize_to_buffer(self, text: str) -> bytes:
         """
         Synthesize speech to an in-memory audio buffer (WAV) and return raw bytes.
         This is used by the /api/voice/tts endpoint to provide audio data to the frontend.
-        
-        Args:
-            text: Text to synthesize
-            voice: Optional voice name to override default
-            language: Optional language code (not used by Azure directly but good for context)
         """
         if not self.available:
             raise RuntimeError('Azure Speech not available')
@@ -237,46 +232,19 @@ class AzureSpeechHandler:
             if not self.speech_config:
                 raise RuntimeError('Speech config not initialized')
             
-            # Create a local speech config to avoid race conditions with singleton
-            # We clone the config by creating a new one with same key/region
-            # Note: SpeechConfig doesn't have a clone method, so we create new or modify a copy if possible.
-            # Actually, we can just set the property on the synthesizer's config if we create a new config.
-            # But creating a new config every time might be overhead.
-            # Better: Create config from subscription again.
-            
-            local_speech_config = speechsdk.SpeechConfig(
-                subscription=self.speech_key,
-                region=self.speech_region
-            )
-            
-            # Set voice on local config
-            target_voice = voice or self.voice_name
-            local_speech_config.speech_synthesis_voice_name = target_voice
-            
-            # Create synthesizer with NO audio output (returns data in result)
+            # Create synthesizer with audio output to memory
+            audio_config = speechsdk.audio.AudioOutputConfig(use_default_speaker=False)
             synthesizer = speechsdk.SpeechSynthesizer(
-                speech_config=local_speech_config,
-                audio_config=None  # None returns audio in result.audio_data
+                speech_config=self.speech_config,
+                audio_config=audio_config
             )
             
-            # Run in thread pool to avoid blocking event loop
-            loop = asyncio.get_running_loop()
-            
-            def _synthesize():
-                result = synthesizer.speak_text_async(text).get()
-                return result
-
-            result = await loop.run_in_executor(None, _synthesize)
-            
+            result = synthesizer.speak_text_async(text).get()
             if result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
                 # result.audio_data is a bytearray containing the audio (WAV)
                 return bytes(result.audio_data)
             else:
-                cancellation_details = result.cancellation_details
-                error_msg = f"Speech synthesis failed: {result.reason}"
-                if cancellation_details.reason == speechsdk.CancellationReason.Error:
-                    error_msg += f" Error details: {cancellation_details.error_details}"
-                raise RuntimeError(error_msg)
+                raise RuntimeError(f"Speech synthesis failed: {result.reason}")
         except Exception as e:
             logger.error(f"Error in synthesize_to_buffer: {e}")
             raise e

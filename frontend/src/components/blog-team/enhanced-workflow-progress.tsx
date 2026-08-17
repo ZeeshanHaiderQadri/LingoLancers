@@ -688,7 +688,6 @@ export function EnhancedWorkflowProgress({ workflowId, onBack, onComplete }: Wor
                       
                       // If no onComplete callback (split-screen mode), navigate to blog team
                       if (!onComplete) {
-                        console.log('📍 No onComplete - navigating to blog team review page')
                         
                         // Clear the split-screen flag to allow navigation
                         (window as any).__splitScreenActive = false;
@@ -710,14 +709,14 @@ export function EnhancedWorkflowProgress({ workflowId, onBack, onComplete }: Wor
                         }))
                         return
                       }
+
+                      const completeWorkflow = onComplete
                       
-                      // Original logic when onComplete is provided
-                      if (onComplete) {
-                        // If we have the completed article from WebSocket, use it
-                        if (completedArticle && completedArticle.content_html && completedArticle.content_html !== '<p>Article content will be loaded...</p>') {
-                          onComplete(completedArticle)
-                          return
-                        }
+                      // If we have the completed article from WebSocket, use it
+                      if (completedArticle && completedArticle.content_html && completedArticle.content_html !== '<p>Article content will be loaded...</p>') {
+                        completeWorkflow(completedArticle)
+                        return
+                      }
                         
                         // Otherwise, fetch the draft from the backend
                         try {
@@ -746,7 +745,7 @@ export function EnhancedWorkflowProgress({ workflowId, onBack, onComplete }: Wor
                                 word_count: draft.word_count || 1500,
                                 keyword_usage: draft.keyword_usage || {}
                               }
-                              onComplete(article)
+                              completeWorkflow(article)
                               return
                             }
                           }
@@ -772,8 +771,7 @@ export function EnhancedWorkflowProgress({ workflowId, onBack, onComplete }: Wor
                           word_count: 1500,
                           keyword_usage: {}
                         }
-                        onComplete(fallbackArticle)
-                      }
+                      completeWorkflow(fallbackArticle)
                     }}
                     className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
                     size="lg"

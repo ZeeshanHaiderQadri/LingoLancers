@@ -1,5 +1,7 @@
 # LingoLancers - AI Agent Platform
 
+> **Project direction:** See [UPGRADE_ROADMAP.md](UPGRADE_ROADMAP.md) for the authoritative plan to evolve Lingo into a voice-first Agentic Business Desk. Historical prototype documentation is in [docs/archive/2025-prototype](docs/archive/2025-prototype/).
+
 A professional AI agent platform with conversational workflows, voice interaction, and multi-modal capabilities.
 
 ## 🚀 Quick Start

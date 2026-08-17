@@ -1,77 +1,40 @@
-# Environment files (NEVER commit these!)
+# Secrets and local configuration
 .env
-.env.local
-.env.production
-.env.development
-backend/.env
-frontend/.env
-frontend/.env.local
+.env.*
+!.env.example
+!.env.*.example
 
 # Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
 venv/
 backend/venv/
-ENV/
-env/
-.venv/
-*.egg-info/
-dist/
-build/
-*.egg
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 
-# Node.js
+# Node and Next.js
 node_modules/
 frontend/node_modules/
 .next/
 frontend/.next/
 out/
-frontend/out/
+build/
+frontend/tsconfig.tsbuildinfo
+frontend/tsc_output*.txt
 
-# IDE
-.idea/
-*.swp
-*.swo
-.vscode/
-*.code-workspace
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Logs
-*.log
-logs/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Build outputs
-build.log
-*.pyc
-
-# Docker
-docker-compose.override.yml
-
-# Database
+# Runtime data and diagnostics
 *.db
+*.sqlite
 *.sqlite3
+*.log
+*.pid
 
-# Secrets and credentials
-*.pem
-*.key
-secrets/
+# OS and editor files
+.DS_Store
+.vscode/
 
-# Test coverage
-.coverage
-htmlcov/
-.pytest_cache/
+# Generated assets and test output
+test_*.png
 coverage/
-
-# Temporary files
-tmp/
-temp/
-*.tmp

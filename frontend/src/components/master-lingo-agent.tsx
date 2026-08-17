@@ -26,160 +26,299 @@ export function MasterLingoAgent({ onNavigate, onStartWorkflow }: LingoAgentProp
   const [interimTranscript, setInterimTranscript] = useState("")
   const [agentResponse, setAgentResponse] = useState("")
   const [selectedVoice, setSelectedVoice] = useState("en-US-AriaNeural")
-  const [selectedLanguage, setSelectedLanguage] = useState("en-US")
+  const [selectedLanguage, setSelectedLanguage] = useState("en")
   const [showSettings, setShowSettings] = useState(false)
-  const [conversationHistory, setConversationHistory] = useState<Array<{ role: string, content: string }>>([])
-
+  const [conversationHistory, setConversationHistory] = useState<Array<{role: string, content: string}>>([])
+  
   const wsRef = useRef<WebSocket | null>(null)
-
-  // Microsoft Azure Neural Voices
-  const azureVoices = [
-    { value: "en-US-AriaNeural", label: "Aria (English US Female)", category: "English US" },
-    { value: "en-US-GuyNeural", label: "Guy (English US Male)", category: "English US" },
-    { value: "en-GB-SoniaNeural", label: "Sonia (English UK Female)", category: "English UK" },
-    { value: "en-GB-RyanNeural", label: "Ryan (English UK Male)", category: "English UK" },
-    { value: "fr-FR-DeniseNeural", label: "Denise (French Female)", category: "French" },
-    { value: "es-ES-ElviraNeural", label: "Elvira (Spanish Female)", category: "Spanish" },
-    { value: "zh-CN-XiaoxiaoNeural", label: "Xiaoxiao (Chinese Female)", category: "Chinese" },
-    { value: "ar-SA-ZariyahNeural", label: "Zariyah (Arabic Female)", category: "Arabic" }
-  ]
-
+  
+  // Available Azure Speech voices - fetch from backend
+  const [allVoices, setAllVoices] = useState<any>({})
+  const [voiceOptions, setVoiceOptions] = useState<Array<{value: string, label: string, category: string}>>([])
+  
+  // Fetch all voices from backend
+  useEffect(() => {
+    const fetchVoices = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/api/lingo/voices')
+        if (response.ok) {
+          const voices = await response.json()
+          setAllVoices(voices)
+          
+          // Convert to flat list for dropdown
+          const options: Array<{value: string, label: string, category: string}> = []
+          
+          // English voices
+          if (voices.english_us) {
+            voices.english_us.female?.forEach((voice: string) => {
+              const name = voice.replace('en-US-', '').replace('Neural', '')
+              options.push({
+                value: voice,
+                label: `${name} (English US Female)`,
+                category: 'English US'
+              })
+            })
+            voices.english_us.male?.forEach((voice: string) => {
+              const name = voice.replace('en-US-', '').replace('Neural', '')
+              options.push({
+                value: voice,
+                label: `${name} (English US Male)`,
+                category: 'English US'
+              })
+            })
+          }
+          
+          // Arabic voices
+          if (voices.arabic) {
+            Object.entries(voices.arabic).forEach(([country, voiceList]: [string, any]) => {
+              if (Array.isArray(voiceList)) {
+                voiceList.forEach((voice: string) => {
+                  const name = voice.split('-')[2]?.replace('Neural', '') || voice
+                  const gender = voice.includes('Zariyah') || voice.includes('Salma') || voice.includes('Fatima') ? 'Female' : 'Male'
+                  options.push({
+                    value: voice,
+                    label: `${name} (Arabic ${country.replace('_', ' ')} ${gender})`,
+                    category: 'Arabic'
+                  })
+                })
+              }
+            })
+          }
+          
+          // Hindi voices
+          if (voices.hindi?.india) {
+            voices.hindi.india.forEach((voice: string) => {
+              const name = voice.split('-')[2]?.replace('Neural', '') || voice
+              const gender = voice.includes('Swara') ? 'Female' : 'Male'
+              options.push({
+                value: voice,
+                label: `${name} (Hindi ${gender})`,
+                category: 'Hindi'
+              })
+            })
+          }
+          
+          // Urdu voices
+          if (voices.urdu) {
+            Object.entries(voices.urdu).forEach(([country, voiceList]: [string, any]) => {
+              if (Array.isArray(voiceList)) {
+                voiceList.forEach((voice: string) => {
+                  const name = voice.split('-')[2]?.replace('Neural', '') || voice
+                  const gender = voice.includes('Uzma') ? 'Female' : 'Male'
+                  options.push({
+                    value: voice,
+                    label: `${name} (Urdu ${country} ${gender})`,
+                    category: 'Urdu'
+                  })
+                })
+              }
+            })
+          }
+          
+          // Chinese voices
+          if (voices.chinese) {
+            Object.entries(voices.chinese).forEach(([type, voiceList]: [string, any]) => {
+              if (Array.isArray(voiceList)) {
+                voiceList.forEach((voice: string) => {
+                  const name = voice.split('-')[2]?.replace('Neural', '') || voice
+                  const gender = voice.includes('Xiaoxiao') || voice.includes('HiuMaan') ? 'Female' : 'Male'
+                  options.push({
+                    value: voice,
+                    label: `${name} (Chinese ${type} ${gender})`,
+                    category: 'Chinese'
+                  })
+                })
+              }
+            })
+          }
+          
+          // Spanish voices
+          if (voices.spanish) {
+            Object.entries(voices.spanish).forEach(([country, voiceList]: [string, any]) => {
+              if (Array.isArray(voiceList)) {
+                voiceList.slice(0, 2).forEach((voice: string) => { // Limit to 2 per country
+                  const name = voice.split('-')[2]?.replace('Neural', '') || voice
+                  const gender = voice.includes('Elvira') || voice.includes('Dalia') || voice.includes('Elena') ? 'Female' : 'Male'
+                  options.push({
+                    value: voice,
+                    label: `${name} (Spanish ${country.replace('_', ' ')} ${gender})`,
+                    category: 'Spanish'
+                  })
+                })
+              }
+            })
+          }
+          
+          // French voices
+          if (voices.french) {
+            Object.entries(voices.french).forEach(([country, voiceList]: [string, any]) => {
+              if (Array.isArray(voiceList)) {
+                voiceList.forEach((voice: string) => {
+                  const name = voice.split('-')[2]?.replace('Neural', '') || voice
+                  const gender = voice.includes('Denise') || voice.includes('Sylvie') ? 'Female' : 'Male'
+                  options.push({
+                    value: voice,
+                    label: `${name} (French ${country} ${gender})`,
+                    category: 'French'
+                  })
+                })
+              }
+            })
+          }
+          
+          // German voices
+          if (voices.german) {
+            Object.entries(voices.german).forEach(([country, voiceList]: [string, any]) => {
+              if (Array.isArray(voiceList)) {
+                voiceList.forEach((voice: string) => {
+                  const name = voice.split('-')[2]?.replace('Neural', '') || voice
+                  const gender = voice.includes('Katja') || voice.includes('Ingrid') ? 'Female' : 'Male'
+                  options.push({
+                    value: voice,
+                    label: `${name} (German ${country} ${gender})`,
+                    category: 'German'
+                  })
+                })
+              }
+            })
+          }
+          
+          setVoiceOptions(options)
+        }
+      } catch (error) {
+        console.error('Error fetching voices:', error)
+        // Fallback to basic voices
+        setVoiceOptions([
+          { value: "en-US-AriaNeural", label: "Aria (English US Female)", category: "English" },
+          { value: "en-US-GuyNeural", label: "Guy (English US Male)", category: "English" },
+          { value: "ar-SA-ZariyahNeural", label: "Zariyah (Arabic Female)", category: "Arabic" },
+          { value: "hi-IN-SwaraNeural", label: "Swara (Hindi Female)", category: "Hindi" }
+        ])
+      }
+    }
+    
+    fetchVoices()
+  }, [])
+  
   // Connect to WebSocket
   useEffect(() => {
-    const apiUrl = process.env.NEXT_PUBLIC_LINGO_API_URL || 'http://localhost:8000';
-    const wsUrl = apiUrl.replace('http://', 'ws://').replace('https://', 'wss://') + '/api/lingo/ws';
-
-    const ws = new WebSocket(wsUrl)
-
-    ws.onopen = () => {
-      console.log('✅ Connected to Master Lingo Agent')
-    }
-
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data)
-
-      if (data.type === 'ui_update' && data.data) {
-        const msg = data.data.message || data.data;
-
-        // Add to history
-        setConversationHistory(prev => [...prev, {
-          role: 'assistant',
-          content: msg
-        }])
-
-        // Speak response
-        speakWithAzure(msg)
+    if (isActive) {
+      const ws = new WebSocket('ws://localhost:8000/api/lingo/ws')
+      
+      ws.onopen = () => {
+        console.log('Connected to Master Lingo Agent')
       }
-
-      if (data.type === 'workflow_started') {
-        if (onStartWorkflow) {
-          onStartWorkflow(data.workflow_type, data.data)
+      
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data)
+        
+        switch (data.type) {
+          case 'navigate':
+            if (onNavigate) {
+              onNavigate(data.destination)
+            }
+            break
+          
+          case 'start_workflow':
+            if (onStartWorkflow) {
+              onStartWorkflow(data.workflow_type, data.data)
+            }
+            break
+          
+          case 'ui_update':
+            if (data.data.interim_transcript) {
+              setInterimTranscript(data.data.interim_transcript)
+            }
+            if (data.data.agent_response) {
+              setAgentResponse(data.data.agent_response)
+              setConversationHistory(prev => [...prev, {
+                role: 'assistant',
+                content: data.data.agent_response
+              }])
+            }
+            if (data.data.form_data) {
+              // Update form with collected data
+              console.log('Form data:', data.data.form_data)
+            }
+            break
         }
       }
+      
+      ws.onerror = (error) => {
+        console.error('WebSocket error:', error)
+      }
+      
+      ws.onclose = () => {
+        console.log('Disconnected from Master Lingo Agent')
+      }
+      
+      wsRef.current = ws
+      
+      return () => {
+        ws.close()
+      }
     }
-
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error)
-    }
-
-    ws.onclose = () => {
-      console.log('Disconnected from Master Lingo Agent')
-    }
-
-    wsRef.current = ws
-
-    return () => {
-      ws.close()
-    }
-  }, [onStartWorkflow])
-
-  // Azure TTS helper function
-  const speakWithAzure = async (text: string) => {
-    if (!text) return;
+  }, [isActive, onNavigate, onStartWorkflow])
+  
+  const startAgent = async () => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_LINGO_API_URL || 'http://localhost:8000';
-      console.log('🔊 Calling Azure TTS:', `${apiUrl}/api/voice/tts`);
-
-      const response = await fetch(`${apiUrl}/api/voice/tts`, {
+      const response = await fetch('http://localhost:8000/api/lingo/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          text,
           voice: selectedVoice,
-          language: selectedLanguage,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`TTS request failed: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      if (data.audio) {
-        const audio = new Audio(`data:audio/wav;base64,${data.audio}`);
-        setIsSpeaking(true);
-        audio.play();
-        audio.onended = () => setIsSpeaking(false);
-        audio.onerror = () => setIsSpeaking(false);
+          language: selectedLanguage
+        })
+      })
+      
+      if (response.ok) {
+        setIsActive(true)
+        setIsListening(true)
+        setConversationHistory([{
+          role: 'assistant',
+          content: "Hello! I'm your Master Lingo assistant. I can help you plan trips or write blog articles. What would you like to do?"
+        }])
       }
     } catch (error) {
-      console.error('❌ Azure TTS error:', error);
+      console.error('Error starting agent:', error)
     }
-  };
-
-  const startListening = () => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      alert('Speech Recognition not supported in this browser. Please use Chrome or Edge.');
-      return;
+  }
+  
+  const stopAgent = async () => {
+    try {
+      await fetch('http://localhost:8000/api/lingo/stop', {
+        method: 'POST'
+      })
+      
+      setIsActive(false)
+      setIsListening(false)
+      setIsSpeaking(false)
+      setTranscript("")
+      setInterimTranscript("")
+    } catch (error) {
+      console.error('Error stopping agent:', error)
     }
-
-    const recognition = new SpeechRecognition();
-    recognition.continuous = false;
-    recognition.interimResults = true;
-    recognition.lang = selectedLanguage;
-
-    recognition.onstart = () => {
-      setIsListening(true);
-      setIsActive(true);
-    };
-
-    recognition.onresult = (event: any) => {
-      const transcript = Array.from(event.results)
-        .map((result: any) => result[0])
-        .map((result: any) => result.transcript)
-        .join('');
-
-      setInterimTranscript(transcript);
-
-      if (event.results[0].isFinal) {
-        setTranscript(transcript);
-        setConversationHistory(prev => [...prev, { role: 'user', content: transcript }]);
-
-        // Send to backend via WebSocket
-        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-          wsRef.current.send(JSON.stringify({ type: 'text_input', text: transcript }));
-        }
-        setInterimTranscript('');
+  }
+  
+  const changeVoice = async (voice: string) => {
+    setSelectedVoice(voice)
+    
+    if (isActive) {
+      try {
+        await fetch('http://localhost:8000/api/lingo/voice', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            voice: voice,
+            language: selectedLanguage
+          })
+        })
+      } catch (error) {
+        console.error('Error changing voice:', error)
       }
-    };
-
-    recognition.onend = () => {
-      setIsListening(false);
-    };
-
-    recognition.start();
-  };
-
-  const stopAgent = () => {
-    setIsActive(false);
-    setIsListening(false);
-    setIsSpeaking(false);
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
     }
-  };
-
+  }
+  
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
@@ -190,12 +329,12 @@ export function MasterLingoAgent({ onNavigate, onStartWorkflow }: LingoAgentProp
             </div>
             Master Lingo Agent
           </CardTitle>
-
+          
           <div className="flex items-center gap-2">
             <Badge variant={isActive ? "default" : "secondary"}>
               {isActive ? "Active" : "Inactive"}
             </Badge>
-
+            
             <Button
               variant="ghost"
               size="icon"
@@ -206,48 +345,68 @@ export function MasterLingoAgent({ onNavigate, onStartWorkflow }: LingoAgentProp
           </div>
         </div>
       </CardHeader>
-
+      
       <CardContent className="space-y-4">
         {/* Settings Panel */}
         {showSettings && (
           <div className="p-4 border rounded-lg space-y-4">
             <h3 className="font-semibold">Voice Settings</h3>
-
+            
             <div className="space-y-2">
-              <label className="text-sm font-medium">Select Voice</label>
-              <Select value={selectedVoice} onValueChange={setSelectedVoice}>
+              <label className="text-sm font-medium">Select Voice (400+ Available)</label>
+              <Select value={selectedVoice} onValueChange={changeVoice}>
                 <SelectTrigger>
                   <SelectValue placeholder="Choose a voice..." />
                 </SelectTrigger>
-                <SelectContent>
-                  {azureVoices.map(voice => (
-                    <SelectItem key={voice.value} value={voice.value}>
-                      {voice.label}
-                    </SelectItem>
-                  ))}
+                <SelectContent className="max-h-60 overflow-y-auto">
+                  {/* Group voices by category */}
+                  {['English US', 'Arabic', 'Hindi', 'Urdu', 'Chinese', 'Spanish', 'French', 'German'].map(category => {
+                    const categoryVoices = voiceOptions.filter(voice => voice.category === category)
+                    if (categoryVoices.length === 0) return null
+                    
+                    return (
+                      <div key={category}>
+                        <div className="px-2 py-1 text-xs font-semibold text-muted-foreground bg-muted/50">
+                          {category}
+                        </div>
+                        {categoryVoices.map(voice => (
+                          <SelectItem key={voice.value} value={voice.value}>
+                            {voice.label}
+                          </SelectItem>
+                        ))}
+                      </div>
+                    )
+                  })}
+                  
+                  {/* Show all other voices */}
+                  {voiceOptions.filter(voice => 
+                    !['English US', 'Arabic', 'Hindi', 'Urdu', 'Chinese', 'Spanish', 'French', 'German'].includes(voice.category)
+                  ).length > 0 && (
+                    <div>
+                      <div className="px-2 py-1 text-xs font-semibold text-muted-foreground bg-muted/50">
+                        Other Languages
+                      </div>
+                      {voiceOptions.filter(voice => 
+                        !['English US', 'Arabic', 'Hindi', 'Urdu', 'Chinese', 'Spanish', 'French', 'German'].includes(voice.category)
+                      ).map(voice => (
+                        <SelectItem key={voice.value} value={voice.value}>
+                          {voice.label}
+                        </SelectItem>
+                      ))}
+                    </div>
+                  )}
                 </SelectContent>
               </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Language</label>
-              <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Language" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="en-US">English (US)</SelectItem>
-                  <SelectItem value="en-GB">English (UK)</SelectItem>
-                  <SelectItem value="es-ES">Spanish</SelectItem>
-                  <SelectItem value="fr-FR">French</SelectItem>
-                  <SelectItem value="zh-CN">Chinese</SelectItem>
-                  <SelectItem value="ar-SA">Arabic</SelectItem>
-                </SelectContent>
-              </Select>
+              
+              {voiceOptions.length > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  {voiceOptions.length} voices available across 140+ languages
+                </p>
+              )}
             </div>
           </div>
         )}
-
+        
         {/* Conversation Display */}
         <div className="min-h-[300px] max-h-[400px] overflow-y-auto p-4 border rounded-lg space-y-3">
           {conversationHistory.length === 0 ? (
@@ -261,17 +420,18 @@ export function MasterLingoAgent({ onNavigate, onStartWorkflow }: LingoAgentProp
                 className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[80%] p-3 rounded-lg ${message.role === 'user'
+                  className={`max-w-[80%] p-3 rounded-lg ${
+                    message.role === 'user'
                       ? 'bg-blue-500 text-white'
                       : 'bg-gray-100 text-gray-900'
-                    }`}
+                  }`}
                 >
                   {message.content}
                 </div>
               </div>
             ))
           )}
-
+          
           {/* Interim transcript */}
           {interimTranscript && (
             <div className="flex justify-end">
@@ -280,7 +440,7 @@ export function MasterLingoAgent({ onNavigate, onStartWorkflow }: LingoAgentProp
               </div>
             </div>
           )}
-
+          
           {/* Speaking indicator */}
           {isSpeaking && (
             <div className="flex justify-start">
@@ -291,31 +451,42 @@ export function MasterLingoAgent({ onNavigate, onStartWorkflow }: LingoAgentProp
             </div>
           )}
         </div>
-
+        
         {/* Controls */}
         <div className="flex items-center justify-center gap-4">
-          {!isListening ? (
+          {!isActive ? (
             <Button
-              onClick={startListening}
+              onClick={startAgent}
               size="lg"
               className="gap-2"
             >
               <Mic className="h-5 w-5" />
-              Talk
+              Start Agent
             </Button>
           ) : (
-            <Button
-              onClick={stopAgent}
-              variant="destructive"
-              size="lg"
-              className="gap-2"
-            >
-              <MicOff className="h-5 w-5" />
-              Stop
-            </Button>
+            <>
+              <Button
+                onClick={stopAgent}
+                variant="destructive"
+                size="lg"
+                className="gap-2"
+              >
+                <MicOff className="h-5 w-5" />
+                Stop Agent
+              </Button>
+              
+              <div className="flex items-center gap-2">
+                {isListening && (
+                  <div className="flex items-center gap-2 text-green-600">
+                    <div className="w-3 h-3 bg-green-600 rounded-full animate-pulse" />
+                    <span className="text-sm font-medium">Listening</span>
+                  </div>
+                )}
+              </div>
+            </>
           )}
         </div>
-
+        
         {/* Quick Actions */}
         <div className="pt-4 border-t">
           <p className="text-sm text-muted-foreground mb-2">Try saying:</p>
