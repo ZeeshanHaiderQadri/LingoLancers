@@ -131,7 +131,7 @@ async def simple_websocket_endpoint(websocket: WebSocket):
                         # Call the blog team API to create the workflow
                         async with httpx.AsyncClient() as client:
                             response = await client.post(
-                                "http://localhost:8000/api/blog/create",
+                                "http://localhost:8002/api/blog/create",
                                 json=blog_request,
                                 timeout=10.0
                             )
@@ -187,7 +187,7 @@ async def simple_websocket_endpoint(websocket: WebSocket):
                         # Call the travel team API to create the workflow
                         async with httpx.AsyncClient() as client:
                             response = await client.post(
-                                "http://localhost:8000/api/travel/create",
+                                "http://localhost:8002/api/travel/create",
                                 json=travel_request,
                                 timeout=10.0
                             )

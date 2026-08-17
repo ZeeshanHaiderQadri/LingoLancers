@@ -1,26 +1,22 @@
-import { 
-  Tool, 
-  Server, 
-  Package, 
-  Database, 
-  Code, 
-  Search, 
-  FileText, 
-  Globe, 
-  Key, 
-  CheckCircle, 
+import {
+  Server,
+  Package,
+  Database,
+  Code,
+  Search,
+  FileText,
+  Globe,
+  Key,
+  CheckCircle,
   XCircle,
   AlertCircle,
   Play,
-  Stop,
   RefreshCw,
-  Plus,
-  Edit,
-  Trash2,
-  Eye,
-  EyeOff,
-  Filter,
-  Settings
+  Pause,
+  SkipForward,
+  SkipBack,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
 
 console.log('Icons imported successfully');

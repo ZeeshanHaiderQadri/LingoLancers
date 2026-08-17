@@ -38,16 +38,16 @@ export class GeminiService {
 
   constructor(apiKey?: string) {
     const key = apiKey || process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
-
+    
     if (!key || key === 'your-gemini-api-key-here') {
       throw new Error('❌ Gemini API key is required. Please set GEMINI_API_KEY in .env.local');
     }
 
     try {
       this.genAI = new GoogleGenerativeAI(key);
-
+      
       // Use Gemini Pro 2.5 (latest model)
-      this.model = this.genAI.getGenerativeModel({
+      this.model = this.genAI.getGenerativeModel({ 
         model: 'gemini-2.0-flash-exp',  // Latest Gemini Pro 2.5
         generationConfig: {
           temperature: 0.7,
@@ -118,7 +118,7 @@ IMPORTANT: Keep ALL responses very SHORT since this is voice conversation. Maxim
             parts: [{ text: systemPrompt }]
           },
           {
-            role: 'model',
+            role: 'model', 
             parts: [{ text: "*excited* Hello! I'm Lingo, your AI assistant! I'm genuinely thrilled to help you with anything you need. What can I help you accomplish today?" }]
           }
         ]
@@ -202,10 +202,10 @@ IMPORTANT: Keep ALL responses very SHORT since this is voice conversation. Maxim
 
     } catch (error: any) {
       console.error('❌ Gemini generation error:', error);
-
+      
       // Provide fallback response to maintain conversation
       const fallbackResponse = this.generateFallbackResponse(userMessage);
-
+      
       return {
         success: false,
         error: error.message || 'Failed to generate response',
@@ -219,7 +219,7 @@ IMPORTANT: Keep ALL responses very SHORT since this is voice conversation. Maxim
    */
   private generateFallbackResponse(userMessage: string): string {
     const lowerMessage = userMessage.toLowerCase();
-
+    
     if (lowerMessage.includes('marketing')) {
       return "*apologetic* I'm having trouble connecting to my full brain right now, but I'd love to help with marketing! Can you tell me more about what you need?";
     } else if (lowerMessage.includes('content')) {
@@ -266,35 +266,7 @@ IMPORTANT: Keep ALL responses very SHORT since this is voice conversation. Maxim
   }
 }
 
-// Lazy singleton instance - only initialize when actually used
-let geminiServiceInstance: GeminiService | null = null;
-
-export const geminiService = {
-  getInstance(): GeminiService | null {
-    if (geminiServiceInstance) {
-      return geminiServiceInstance;
-    }
-
-    const key = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
-
-    // Only create instance if API key is available
-    if (key && key !== 'your-gemini-api-key-here') {
-      try {
-        geminiServiceInstance = new GeminiService(key);
-        return geminiServiceInstance;
-      } catch (error) {
-        console.error('Failed to initialize Gemini service:', error);
-        return null;
-      }
-    }
-
-    console.warn('Gemini API key not configured - service unavailable');
-    return null;
-  },
-
-  isAvailable(): boolean {
-    return this.getInstance() !== null;
-  }
-};
+// Create singleton instance
+export const geminiService = new GeminiService();
 
 export default GeminiService;

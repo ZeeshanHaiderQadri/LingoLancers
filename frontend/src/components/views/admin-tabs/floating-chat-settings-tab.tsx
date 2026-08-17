@@ -6,16 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  Save,
-  X,
-  Palette,
-  Type,
-  MessageSquare,
-  Clock,
-  Globe,
-  Smartphone
-} from 'lucide-react';
+import { MessageSquare, Settings, X, Save, Plus, Smartphone, Globe } from "lucide-react";
 
 const FloatingChatSettingsTab = () => {
   const [settings, setSettings] = useState({
@@ -66,17 +57,17 @@ const FloatingChatSettingsTab = () => {
                     Toggle to show or hide the chat widget
                   </p>
                 </div>
-                <Switch 
-                  checked={settings.enabled} 
-                  onCheckedChange={(checked) => setSettings({...settings, enabled: checked})}
+                <Switch
+                  checked={settings.enabled}
+                  onCheckedChange={(checked) => setSettings({ ...settings, enabled: checked })}
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label>Widget Position</Label>
-                <Select 
-                  value={settings.position} 
-                  onValueChange={(value) => setSettings({...settings, position: value})}
+                <Select
+                  value={settings.position}
+                  onValueChange={(value) => setSettings({ ...settings, position: value })}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -89,12 +80,12 @@ const FloatingChatSettingsTab = () => {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="space-y-2">
                 <Label>Theme</Label>
-                <Select 
-                  value={settings.theme} 
-                  onValueChange={(value) => setSettings({...settings, theme: value})}
+                <Select
+                  value={settings.theme}
+                  onValueChange={(value) => setSettings({ ...settings, theme: value })}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -121,9 +112,9 @@ const FloatingChatSettingsTab = () => {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label>Mobile Display</Label>
-                <Select 
-                  value={settings.mobileBehavior} 
-                  onValueChange={(value) => setSettings({...settings, mobileBehavior: value})}
+                <Select
+                  value={settings.mobileBehavior}
+                  onValueChange={(value) => setSettings({ ...settings, mobileBehavior: value })}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -136,7 +127,7 @@ const FloatingChatSettingsTab = () => {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
                 <Smartphone className="h-5 w-5 text-muted-foreground" />
                 <p className="text-sm">
@@ -158,27 +149,27 @@ const FloatingChatSettingsTab = () => {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label>Greeting Message</Label>
-                <Textarea 
+                <Textarea
                   value={settings.greetingMessage}
-                  onChange={(e) => setSettings({...settings, greetingMessage: e.target.value})}
+                  onChange={(e) => setSettings({ ...settings, greetingMessage: e.target.value })}
                   className="min-h-[80px]"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label>Away Message</Label>
-                <Textarea 
+                <Textarea
                   value={settings.awayMessage}
-                  onChange={(e) => setSettings({...settings, awayMessage: e.target.value})}
+                  onChange={(e) => setSettings({ ...settings, awayMessage: e.target.value })}
                   className="min-h-[80px]"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label>Expected Response Time</Label>
-                <Input 
+                <Input
                   value={settings.responseTime}
-                  onChange={(e) => setSettings({...settings, responseTime: e.target.value})}
+                  onChange={(e) => setSettings({ ...settings, responseTime: e.target.value })}
                   placeholder="e.g., 2-4 hours"
                 />
               </div>
@@ -199,19 +190,19 @@ const FloatingChatSettingsTab = () => {
                   Currently supporting {settings.languages.length} languages
                 </p>
               </div>
-              
+
               <div className="flex flex-wrap gap-2">
                 {settings.languages.map((lang, index) => (
                   <div key={index} className="flex items-center gap-1 bg-secondary px-2 py-1 rounded">
                     <span className="text-sm">{lang}</span>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       className="h-4 w-4"
                       onClick={() => {
                         const newLanguages = [...settings.languages];
                         newLanguages.splice(index, 1);
-                        setSettings({...settings, languages: newLanguages});
+                        setSettings({ ...settings, languages: newLanguages });
                       }}
                     >
                       <X className="h-3 w-3" />

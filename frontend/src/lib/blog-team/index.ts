@@ -4,6 +4,5 @@
  * Services and utilities for the blog writing team feature
  */
 
-export * from './blog-api-service';
-export * from './integration-service';
-export * from './websocket-service';
+// Service modules were removed during the prototype iteration. Keep this entry
+// point available for shared types until the Mission API replaces this feature.

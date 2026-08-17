@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Bot, Loader2, Mic, Sparkles, PenSquare, Plane, X, Paperclip, Send, Share2, FileText, Code2, Image as ImageIcon, Video } from "lucide-react";
+import { Bot, Loader2, Mic, MicOff, Sparkles, PenSquare, Plane, X, Paperclip, Send, Share2, FileText, Code2, Image as ImageIcon, Video } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { LancersAgentsDropdown } from "@/components/lancers-agents-dropdown";
 import { ConnectAppsDropdown } from "@/components/connect-apps-dropdown";
+import { VoiceAgent } from "@/components/VoiceAgent";
 
 interface Message {
   id: string;
@@ -73,7 +74,7 @@ export default function UnifiedChatInterface() {
   const clearChat = async () => {
     // Reset backend conversation state
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_LINGO_API_URL || 'http://localhost:8000';
+      const apiUrl = process.env.NEXT_PUBLIC_LINGO_API_URL || 'http://localhost:8001';
       await fetch(`${apiUrl}/api/lingo/reset`, {
         method: 'POST',
       });
@@ -96,7 +97,7 @@ export default function UnifiedChatInterface() {
   };
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isListening, setIsListening] = useState(false);
+
   const [isMuted, setIsMuted] = useState(false);
   const [detectedIntent, setDetectedIntent] = useState<string | null>(null);
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
@@ -106,8 +107,54 @@ export default function UnifiedChatInterface() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isRecording, setIsRecording] = useState(false);
-  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+
+  const [isVoiceAgentOpen, setIsVoiceAgentOpen] = useState(false);
+  const [voiceState, setVoiceState] = useState<'idle' | 'listening' | 'thinking' | 'speaking'>('idle');
+  const [partialTranscript, setPartialTranscript] = useState("");
+  const [lastInputWasVoice, setLastInputWasVoice] = useState(false);
+
+  const handleVoiceStateChange = (state: 'idle' | 'listening' | 'thinking' | 'speaking') => {
+    setVoiceState(state);
+    if (state === 'idle') {
+      setIsVoiceAgentOpen(false);
+      setPartialTranscript("");
+    }
+  };
+
+  const handleVoiceTranscript = (text: string, isFinal: boolean) => {
+    if (isFinal) {
+      // Mark that this input came from voice
+      setLastInputWasVoice(true);
+      console.log("🎤 Voice input detected - setting lastInputWasVoice = true");
+
+      // Add user message to chat
+      const userMessage: Message = {
+        id: crypto.randomUUID(),
+        role: "user",
+        content: text,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, userMessage]);
+      setPartialTranscript("");
+
+      // Send to backend via WebSocket (same as text input)
+      console.log("🔍 Checking WebSocket - ws exists:", !!ws, "readyState:", ws?.readyState);
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        const message = {
+          type: "text_input",
+          text: text,
+        };
+        console.log("📤 Sending voice transcript to backend:", message);
+        ws.send(JSON.stringify(message));
+        setIsLoading(true);
+      } else {
+        console.error("❌ WebSocket not connected! ws exists:", !!ws, "State:", ws?.readyState);
+        console.error("💡 Try typing a text message first to establish the connection");
+      }
+    } else {
+      setPartialTranscript(text);
+    }
+  };
 
   // ✅ NEW: Handle suggestion card clicks
   const handleCardClick = (card: SuggestionCard) => {
@@ -143,25 +190,22 @@ export default function UnifiedChatInterface() {
     }
   };
 
-  // WebSocket connection
   useEffect(() => {
     const connectWebSocket = () => {
-      const apiUrl = process.env.NEXT_PUBLIC_LINGO_API_URL || 'http://localhost:8000';
+      const apiUrl = process.env.NEXT_PUBLIC_LINGO_API_URL || 'http://localhost:8002';
       const wsUrl = apiUrl.replace('http://', 'ws://').replace('https://', 'wss://');
-      const websocket = new WebSocket(`${wsUrl}/api/lingo/ws`);
+      const fullUrl = `${wsUrl}/api/lingo/ws`;
+
+      console.log("🔄 Attempting WebSocket connection to:", fullUrl);
+      const websocket = new WebSocket(fullUrl);
 
       websocket.onopen = () => {
-        console.log("✅ Connected to Lingo Agent");
+        console.log("✅ Connected to Lingo Agent at:", fullUrl);
       };
 
       websocket.onmessage = (event) => {
         const data = JSON.parse(event.data);
         console.log("📨 Received:", data);
-
-        // Always clear loading state when we receive any message (except heartbeats)
-        if (data.type !== "pong" && data.type !== "heartbeat" && data.type !== "heartbeat_response") {
-          setIsLoading(false);
-        }
 
         // ✅ NEW: Handle suggestion cards
         if (data.type === "show_suggestion_cards") {
@@ -251,42 +295,57 @@ export default function UnifiedChatInterface() {
           // Handle UI updates from agent
           console.log("🔄 UI Update:", data.data);
           if (data.data.message) {
-            setMessages((prev) => [
-              ...prev,
-              {
-                id: crypto.randomUUID(),
-                role: "agent",
-                content: data.data.message,
-                timestamp: new Date(),
-                intent: data.data.intent,
-                extracted_data: data.data.extracted_data, // Store extracted data from backend!
-              },
-            ]);
+            const agentMessage = {
+              id: crypto.randomUUID(),
+              role: "agent" as const,
+              content: data.data.message,
+              timestamp: new Date(),
+              intent: data.data.intent,
+              extracted_data: data.data.extracted_data,
+            };
 
-            // Speak the response!
-            speakWithAzure(data.data.message);
+            setMessages((prev) => [...prev, agentMessage]);
 
             if (data.data.intent) {
               setDetectedIntent(data.data.intent);
             }
+
             console.log("💾 Stored message with extracted_data:", data.data.extracted_data);
+
+            // 🔊 Speak the message ONLY if last input was voice
+            if (lastInputWasVoice && typeof window !== 'undefined' && (window as any).lingoVoiceSpeak) {
+              console.log("🔊 Speaking AI response (voice input detected)");
+              (window as any).lingoVoiceSpeak(data.data.message);
+              setLastInputWasVoice(false); // Reset flag
+            }
           }
+          setIsLoading(false);
         } else if (data.type === "chat_message") {
           // Handle direct chat messages from backend
           console.log("💬 Chat Message:", data);
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: crypto.randomUUID(),
-              role: data.role === "assistant" ? "agent" : data.role,
-              content: data.content,
-              timestamp: new Date(data.timestamp ? data.timestamp * 1000 : Date.now()),
-              intent: data.intent,
-            },
-          ]);
+          const chatMessage = {
+            id: crypto.randomUUID(),
+            role: data.role === "assistant" ? "agent" as const : data.role as "user" | "agent" | "system",
+            content: data.content,
+            timestamp: new Date(data.timestamp ? data.timestamp * 1000 : Date.now()),
+            intent: data.intent,
+          };
+
+          setMessages((prev) => [...prev, chatMessage]);
+
           if (data.intent) {
             setDetectedIntent(data.intent);
           }
+
+          // 🔊 Speak the message ONLY if last input was voice and it's from the agent
+          if (lastInputWasVoice && chatMessage.role === "agent" && typeof window !== 'undefined' && (window as any).lingoVoiceSpeak) {
+            console.log("🔊 Speaking AI response (voice input detected)");
+            (window as any).lingoVoiceSpeak(data.content);
+            setLastInputWasVoice(false); // Reset flag
+          }
+
+          setIsLoading(false);
+
         } else if (data.type === "pong") {
           // Heartbeat response
           console.log("💓 Pong received");
@@ -295,15 +354,17 @@ export default function UnifiedChatInterface() {
 
       websocket.onerror = (error) => {
         console.error("❌ WebSocket error:", error);
+        console.error("❌ Failed to connect to:", fullUrl);
       };
 
-      websocket.onclose = () => {
-        console.log("🔌 Disconnected from Lingo Agent");
+      websocket.onclose = (event) => {
+        console.log("🔌 Disconnected from Lingo Agent. Code:", event.code, "Reason:", event.reason);
         // Reconnect after 3 seconds
         setTimeout(connectWebSocket, 3000);
       };
 
       setWs(websocket);
+      console.log("💾 WebSocket stored in state, readyState:", websocket.readyState);
     };
 
     connectWebSocket();
@@ -344,6 +405,10 @@ export default function UnifiedChatInterface() {
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
+
+    // Ensure text input doesn't trigger voice
+    setLastInputWasVoice(false);
+    console.log("📝 Text input - resetting lastInputWasVoice to false");
 
     // Send via WebSocket
     if (ws && ws.readyState === WebSocket.OPEN) {
@@ -396,91 +461,7 @@ export default function UnifiedChatInterface() {
     }
   };
 
-  // Azure TTS helper function
-  const speakWithAzure = async (text: string) => {
-    if (!text) return;
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_LINGO_API_URL || 'http://localhost:8000';
-      console.log('🔊 Calling Azure TTS:', `${apiUrl}/api/voice/tts`);
 
-      const response = await fetch(`${apiUrl}/api/voice/tts`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          text,
-          voice: "en-US-AriaNeural", // Default voice
-          language: "en-US",
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`TTS request failed: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      if (data.audio) {
-        const audio = new Audio(`data:audio/wav;base64,${data.audio}`);
-        audio.play();
-      }
-    } catch (error) {
-      console.error('❌ Azure TTS error:', error);
-    }
-  };
-
-  const startVoiceRecording = () => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      alert('Speech Recognition not supported in this browser. Please use Chrome or Edge.');
-      return;
-    }
-
-    const recognition = new SpeechRecognition();
-    recognition.continuous = false;
-    recognition.interimResults = true;
-    recognition.lang = 'en-US';
-
-    recognition.onstart = () => {
-      setIsRecording(true);
-      setIsListening(true);
-      console.log("🎤 Voice recognition started...");
-    };
-
-    recognition.onresult = (event: any) => {
-      const transcript = Array.from(event.results)
-        .map((result: any) => result[0])
-        .map((result: any) => result.transcript)
-        .join('');
-
-      setInput(transcript);
-
-      if (event.results[0].isFinal) {
-        handleSend(); // Auto-send on final result
-      }
-    };
-
-    recognition.onend = () => {
-      setIsRecording(false);
-      setIsListening(false);
-      console.log("🎤 Voice recognition ended");
-    };
-
-    recognition.start();
-  };
-
-  const stopVoiceRecording = () => {
-    // SpeechRecognition stops automatically, but we can force it if needed
-    // This is kept for compatibility with the toggle function
-    setIsRecording(false);
-    setIsListening(false);
-  };
-
-  const toggleVoice = () => {
-    if (isRecording) {
-      stopVoiceRecording();
-    } else {
-      startVoiceRecording();
-    }
-  };
 
   const handleAgentSelect = (agentId: string) => {
     console.log("🎯 Selected agent:", agentId);
@@ -576,53 +557,6 @@ export default function UnifiedChatInterface() {
     window.addEventListener('navigate' as any, handleNavigate);
     return () => {
       window.removeEventListener('navigate' as any, handleNavigate);
-    };
-  }, []);
-
-  // Listen for voice agent messages
-  useEffect(() => {
-    const handleUserMessage = (event: CustomEvent) => {
-      const { message } = event.detail;
-      console.log("🎤 Received voice user message:", message);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          role: "user",
-          content: message,
-          timestamp: new Date(),
-        },
-      ]);
-    };
-
-    const handleAgentMessage = (event: CustomEvent) => {
-      const { message } = event.detail;
-      console.log("🤖 Received voice agent message:", message);
-
-      // Check if this message is already the last one (to avoid duplicates if using same websocket)
-      setMessages((prev) => {
-        const lastMsg = prev[prev.length - 1];
-        if (lastMsg && lastMsg.role === "agent" && lastMsg.content === message) {
-          return prev;
-        }
-        return [
-          ...prev,
-          {
-            id: crypto.randomUUID(),
-            role: "agent",
-            content: message,
-            timestamp: new Date(),
-          },
-        ];
-      });
-    };
-
-    window.addEventListener('lingo-user-message' as any, handleUserMessage);
-    window.addEventListener('lingo-agent-message' as any, handleAgentMessage);
-
-    return () => {
-      window.removeEventListener('lingo-user-message' as any, handleUserMessage);
-      window.removeEventListener('lingo-agent-message' as any, handleAgentMessage);
     };
   }, []);
 
@@ -1150,12 +1084,17 @@ export default function UnifiedChatInterface() {
               />
 
               {/* Action Buttons */}
-              <div className="flex gap-1">
+              <div className="relative flex items-center gap-2 bg-background/50 backdrop-blur-xl p-2 rounded-xl border shadow-sm">
+                {partialTranscript && (
+                  <div className="absolute bottom-full left-0 w-full mb-2 p-2 bg-background/90 backdrop-blur border rounded-lg shadow-lg text-sm animate-in fade-in slide-in-from-bottom-2">
+                    <span className="text-muted-foreground text-xs font-bold uppercase mr-2">Listening:</span>
+                    {partialTranscript}
+                  </div>
+                )}
                 <Button
-                  size="sm"
                   variant="ghost"
-                  className="h-10 w-10 p-0 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                  disabled={isLoading}
+                  size="icon"
+                  className="h-10 w-10 text-muted-foreground hover:text-foreground"
                   onClick={handleFileSelect}
                   title="Attach file"
                 >
@@ -1163,19 +1102,40 @@ export default function UnifiedChatInterface() {
                 </Button>
                 <Button
                   size="sm"
-                  variant={isListening ? "default" : "ghost"}
+                  variant={isVoiceAgentOpen ? "default" : "ghost"}
                   className={cn(
                     "h-10 w-10 p-0 transition-all duration-300",
-                    isListening
+                    isVoiceAgentOpen
                       ? "bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/25 animate-pulse"
                       : "hover:bg-muted text-muted-foreground hover:text-foreground"
                   )}
-                  onClick={toggleVoice}
+                  onClick={() => {
+                    if (isVoiceAgentOpen && partialTranscript) {
+                      // Send the current partial transcript as final
+                      console.log("📤 Manually sending partial transcript:", partialTranscript);
+                      handleVoiceTranscript(partialTranscript, true);
+                    }
+                    setIsVoiceAgentOpen(!isVoiceAgentOpen);
+                  }}
                   disabled={isLoading}
-                  title={isRecording ? "Stop recording" : "Start voice input"}
+                  title={isVoiceAgentOpen ? (partialTranscript ? "Send & Stop" : "Stop Voice") : "Start Voice"}
                 >
-                  <Mic className="h-4 w-4" />
+                  {voiceState === 'thinking' ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : isVoiceAgentOpen ? (
+                    <MicOff className="h-4 w-4" />
+                  ) : (
+                    <Mic className="h-4 w-4" />
+                  )}
                 </Button>
+
+                {/* Headless Voice Agent */}
+                <VoiceAgent
+                  isOpen={isVoiceAgentOpen}
+                  onClose={() => setIsVoiceAgentOpen(false)}
+                  onTranscript={handleVoiceTranscript}
+                  onStateChange={handleVoiceStateChange}
+                />
                 <Button
                   onClick={handleSend}
                   disabled={isLoading || !input.trim()}
@@ -1202,6 +1162,7 @@ export default function UnifiedChatInterface() {
           </div>
         </div>
       </div>
+
     </div>
   );
 }

@@ -31,6 +31,7 @@ import api.tasks_api as tasks_api
 import api.teams_api as teams_api
 import api.teams_launch_api as teams_launch_api
 import api.tasks_websocket_router as tasks_websocket_router
+from missions.api import router as missions_router
 
 # Import Microsoft Agent Framework components
 from maf_core.orchestrator import initialize_master_orchestrator, get_master_orchestrator
@@ -52,10 +53,16 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Add CORS middleware
+# Add CORS middleware. Wildcard origins cannot safely be combined with credentials.
+allowed_origins = [
+    origin.strip()
+    for origin in os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
+    if origin.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -179,6 +186,7 @@ app.include_router(tasks_api.router, prefix="/api", tags=["tasks"])
 app.include_router(teams_api.router, prefix="/api", tags=["teams"])
 app.include_router(teams_launch_api.router, prefix="/api", tags=["teams"])
 app.include_router(tasks_websocket_router.router, tags=["websocket"])
+app.include_router(missions_router)
 if BLOG_TEAM_AVAILABLE and blog_router and websocket_router:
     app.include_router(blog_router)  # blog_router already has /api/blog prefix
     app.include_router(websocket_router, tags=["websocket"])

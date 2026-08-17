@@ -618,7 +618,7 @@ export function TeamStatusDisplay({ taskId }: { taskId: string }) {
         
         {status.result && (
           <div className="text-sm text-muted-foreground">
-            <strong>Result:</strong> {status.result.summary}
+            <strong>Result:</strong> {status.result.full_result?.summary ?? status.result.data ?? 'Completed'}
           </div>
         )}
         

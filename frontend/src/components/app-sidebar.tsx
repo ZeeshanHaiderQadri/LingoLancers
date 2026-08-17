@@ -111,6 +111,12 @@ export function AppSidebar({ activeView, onNavigate }: AppSidebarProps) {
             <SidebarContent className="no-scrollbar">
                 <SidebarMenu>
                     <SidebarMenuItem>
+                        <SidebarMenuButton onClick={() => onNavigate('missions')} isActive={activeView === 'missions'}>
+                            <Bot />
+                            <span className="group-data-[collapsible=icon]:hidden">Mission Control</span>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
                         <SidebarMenuButton onClick={() => onNavigate('chat', 'agent')} isActive={activeView === 'chat'}>
                             <LayoutDashboard />
                             <span className="group-data-[collapsible=icon]:hidden">Dashboard</span>

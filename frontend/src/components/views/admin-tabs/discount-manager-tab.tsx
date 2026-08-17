@@ -57,7 +57,7 @@ const DiscountManagerTab = () => {
   const [newDiscount, setNewDiscount] = useState({
     name: '',
     type: 'percentage',
-    value: 0,
+    value: '',
     startDate: '',
     endDate: '',
     applicableTo: 'All Products'

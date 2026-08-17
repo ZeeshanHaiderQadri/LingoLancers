@@ -218,6 +218,107 @@ Generate a response that feels natural and moves the conversation forward effect
         except Exception as e:
             logger.error(f"❌ Error generating response: {e}")
             return self._fallback_response(intent, collected_data)
+
+    async def generate_streaming_conversational_response(
+        self, 
+        user_message: str, 
+        intent: str, 
+        collected_data: Dict[str, Any],
+        conversation_history: List[Dict] = None
+    ) -> AsyncGenerator[str, None]:
+        """
+        Generate streaming conversational response for voice agent
+        """
+        
+        context = ""
+        if conversation_history:
+            recent_messages = conversation_history[-3:]
+            context = "\n".join([f"{msg['role']}: {msg['content']}" for msg in recent_messages])
+        
+        response_prompt = f"""Generate a natural, conversational response for this situation:
+
+INTENT: {intent}
+USER MESSAGE: "{user_message}"
+COLLECTED DATA: {json.dumps(collected_data, indent=2)}
+
+CONVERSATION HISTORY:
+{context}
+
+GUIDELINES:
+• Be enthusiastic and helpful
+• Acknowledge what the user has provided
+• Ask for missing information naturally
+• Use conversational language, not robotic templates
+• Show understanding of their goals
+• Provide clear next steps
+• Keep responses concise but complete
+• Do NOT use markdown formatting or emojis (this is for voice)
+
+Generate a response that feels natural and moves the conversation forward effectively."""
+
+        try:
+            if self.provider.value.startswith("azure-openai"):
+                async for token in self._call_azure_openai_stream(response_prompt, user_message, max_tokens=200):
+                    yield token
+            elif self.provider in [LLMProvider.OPENAI_GPT4O, LLMProvider.OPENAI_GPT4O_MINI]:
+                async for token in self._call_openai_stream(response_prompt, user_message, max_tokens=200):
+                    yield token
+            else:
+                # Fallback to non-streaming if provider doesn't support it
+                response = await self._call_azure_ai_foundry(response_prompt, user_message, max_tokens=200)
+                yield response
+        
+        except Exception as e:
+            logger.error(f"❌ Error generating streaming response: {e}")
+            yield self._fallback_response(intent, collected_data)
+
+    async def _call_azure_openai_stream(self, system_prompt: str, user_message: str, max_tokens: int = 500) -> AsyncGenerator[str, None]:
+        """Call Azure OpenAI API with streaming"""
+        if not self.azure_openai_client:
+            raise Exception("Azure OpenAI client not initialized")
+        
+        deployment_name = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME", "gpt-4o")
+        
+        response = self.azure_openai_client.chat.completions.create(
+            model=deployment_name,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_message}
+            ],
+            temperature=0.7,
+            max_tokens=max_tokens,
+            stream=True
+        )
+        
+        for chunk in response:
+            if chunk.choices and chunk.choices[0].delta.content:
+                yield chunk.choices[0].delta.content
+
+    async def _call_openai_stream(self, system_prompt: str, user_message: str, max_tokens: int = 500) -> AsyncGenerator[str, None]:
+        """Call Direct OpenAI API with streaming"""
+        if not self.openai_client:
+            raise Exception("OpenAI client not initialized")
+        
+        model_map = {
+            LLMProvider.OPENAI_GPT4O: "gpt-4o",
+            LLMProvider.OPENAI_GPT4O_MINI: "gpt-4o-mini"
+        }
+        model_name = model_map.get(self.provider, "gpt-4o-mini")
+        
+        response = self.openai_client.chat.completions.create(
+            model=model_name,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_message}
+            ],
+            temperature=0.7,
+            max_tokens=max_tokens,
+            stream=True
+        )
+        
+        for chunk in response:
+            if chunk.choices and chunk.choices[0].delta.content:
+                yield chunk.choices[0].delta.content
     
     async def _call_azure_openai(self, system_prompt: str, user_message: str, max_tokens: int = 500) -> str:
         """Call Azure OpenAI API"""

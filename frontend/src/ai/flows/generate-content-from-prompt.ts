@@ -10,7 +10,12 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { MediaPart } from 'genkit/cohere';
+
+type MediaPart = {
+  media?: {
+    url?: string;
+  };
+};
 
 const GenerateContentInputSchema = z.object({
   prompt: z.string().describe('The prompt to use to generate content.'),
@@ -33,8 +38,11 @@ async function downloadVideo(video: MediaPart, apiKey: string | undefined): Prom
     if (!apiKey) {
       throw new Error('GEMINI_API_KEY environment variable not set.');
     }
+    if (!video.media?.url) {
+      throw new Error('Generated video did not include a download URL.');
+    }
     const videoDownloadResponse = await fetch(
-      `${video.media!.url}&key=${apiKey}`
+      `${video.media.url}&key=${apiKey}`
     );
     if (
       !videoDownloadResponse ||
@@ -96,10 +104,14 @@ const generateContentFlow = ai.defineFlow(
     }
     
     const videoDataUri = await downloadVideo(videoMediaPart as MediaPart, process.env.GEMINI_API_KEY);
+    const imageUrl = imageResult.media?.url;
+    if (!imageUrl) {
+      throw new Error('Generated image did not include a URL.');
+    }
 
     return {
       article: articleResult.text,
-      image: imageResult.media.url,
+      image: imageUrl,
       video: videoDataUri,
     };
   }

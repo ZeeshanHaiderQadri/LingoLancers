@@ -493,17 +493,14 @@ class MasterLingoAgent:
                         else:
                             logger.warning(f"⚠️ on_start_workflow callback is None! Cannot start workflow.")
                     
-                    # Update UI with enhanced metadata (use correct format for frontend)
+                    # Update UI with enhanced metadata
                     if self.on_update_ui:
                         await self.on_update_ui({
-                            'type': 'ui_update',
-                            'data': {
-                                'message': message,
-                                'intent': al_response.get('intent'),
-                                'confidence': confidence,
-                                'source': 'agent_lightning',
-                                'agent_lightning_enhanced': True
-                            }
+                            'message': message,
+                            'intent': al_response.get('intent'),
+                            'confidence': confidence,
+                            'source': 'agent_lightning',
+                            'agent_lightning_enhanced': True
                         })
                     
                     self.state = ConversationState.LISTENING

@@ -6,8 +6,9 @@ pydantic>=2.7.4
 openai>=1.99.0
 requests>=2.31.0
 
-# Microsoft Agent Framework (using available packages)
-# Note: Microsoft Agent Framework is in preview, using compatible alternatives
+# Microsoft Agent Framework and Azure integration
+# The legacy_orchestration package is retained only for existing prototype routes.
+agent-framework-foundry==1.11.0
 azure-ai-inference>=1.0.0b4
 azure-identity>=1.17.0
 openai>=1.99.0
@@ -48,3 +49,4 @@ onnxruntime>=1.16.0
 google-cloud-aiplatform>=1.38.0
 google-cloud-storage>=2.10.0
 google-generativeai>=0.3.0
+azure-cognitiveservices-speech>=1.31.0

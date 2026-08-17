@@ -1,32 +1,14 @@
-# Docker ignore file for Frontend
-
-# Git
+node_modules
+.next
+out
+build
+dist
 .git
-.gitignore
-
-# Environment
-.env
+.DS_Store
 .env.local
-.env.development
-.env.test
-
-# Dependencies
-node_modules/
+.env.development.local
+.env.test.local
+.env.production.local
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
-
-# Build output
-.next/
-out/
-build/
-dist/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-
-# OS
-.DS_Store
